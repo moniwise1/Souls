@@ -9,7 +9,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Hero: rotate through pairs of pieces
   const pairs = [
+    [["clog", "camel"], ["doublestrap", "cognac"]],
+    [["runner", "chocolate"], ["fisherman", "cream"]],
     [["oxford", "cognac"], ["pump", "red"]],
+    [["crossslide", "black"], ["clogstrap", "blush"]],
     [["chelsea", "black"], ["tote", "cognac"]],
     [["loafer", "oxblood"], ["slingback", "cream"]],
     [["palm", "burgundy"], ["clutch", "emerald"]],
@@ -65,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // The edit
   function renderEdit(kind) {
     let list;
-    if (kind === "new") list = P.filter(p => p.badges.includes("new"));
+    if (kind === "new") list = P.filter(p => p.badges.includes("new")).sort((a, b) => b.added - a.added);
     else if (kind === "sale") list = P.filter(p => p.compareAt);
     else list = P.filter(p => p.badges.includes(kind));
     // Mix men and women so both are always represented
