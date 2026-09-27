@@ -88,5 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#promo-b").innerHTML = window.ART.svg("clutch", "gold");
   $("#story-art").insertAdjacentHTML("afterbegin", window.ART.svg("brogue", "oxblood"));
 
+  window.SBZ.gallery($("#home-gallery"), 6);
+
   initReveal();
 });

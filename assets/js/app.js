@@ -600,11 +600,43 @@
     </table></div>`;
   }
 
+  /* ---------- cascading gallery ---------- */
+  function gallery(host, limit) {
+    const items = (window.GALLERY || []).slice(0, limit || 99);
+    const tile = (g, i) => {
+      const [art, colour] = (g.art || "oxford:cognac").split(":");
+      const fallback = `<div class="cascade__art">${window.ART.svg(art, colour)}</div>`;
+      return `<figure class="cascade__item cascade__item--${g.shape || "square"}" data-g="${i}" tabindex="0">
+        ${g.src ? `<img src="${esc(g.src)}" alt="${esc(g.caption)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'cascade__art',innerHTML:window.ART.svg('${art}','${colour}')}))">` : fallback}
+        <figcaption>${esc(g.caption)}</figcaption>
+      </figure>`;
+    };
+    host.innerHTML = `<div class="cascade">${items.map(tile).join("")}</div>`;
+    const open = i => {
+      const g = items[i];
+      let lb = $("#lightbox");
+      if (!lb) {
+        document.body.insertAdjacentHTML("beforeend", `<div class="lightbox" id="lightbox" role="dialog" aria-modal="true"><button class="icon-btn lightbox__close" aria-label="Close">${ICON.close}</button><figure></figure></div>`);
+        lb = $("#lightbox");
+        lb.addEventListener("click", e => { if (!e.target.closest("img, a")) lb.classList.remove("is-open"); });
+        document.addEventListener("keydown", e => { if (e.key === "Escape") lb.classList.remove("is-open"); });
+      }
+      const [art, colour] = (g.art || "oxford:cognac").split(":");
+      $("figure", lb).innerHTML = (g.src ? `<img src="${esc(g.src)}" alt="${esc(g.caption)}">` : `<div class="cascade__art">${window.ART.svg(art, colour)}</div>`) +
+        `<figcaption>${esc(g.caption)}${g.credit ? ` <span>Photo: ${g.creditUrl ? `<a href="${esc(g.creditUrl)}" target="_blank" rel="noopener">${esc(g.credit)}</a>` : esc(g.credit)}</span>` : ""}</figcaption>`;
+      lb.classList.add("is-open");
+    };
+    $$(".cascade__item", host).forEach(el => {
+      el.addEventListener("click", () => open(Number(el.dataset.g)));
+      el.addEventListener("keydown", e => { if (e.key === "Enter") open(Number(el.dataset.g)); });
+    });
+  }
+
   /* ---------- public API ---------- */
   window.SBZ = {
     $, $$, esc, store, byId, catOf, sizesOf, deptLabel, describe, money, media, card, bindCards,
     priceHtml, badgeHtml, lineHtml, bindLines, shipBar, lineKey, searchProducts,
-    Cart, Wish, ICON, logo, toast, openDrawer, initReveal, freeShipLeft, sizeTable,
+    Cart, Wish, ICON, logo, toast, openDrawer, initReveal, freeShipLeft, sizeTable, gallery,
     get currency() { return currency; }
   };
 

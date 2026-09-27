@@ -64,5 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#size-women").innerHTML = sizeTable("women");
   }
 
+  if ($("#bespoke-gallery")) window.SBZ.gallery($("#bespoke-gallery"));
+
   initReveal();
 });

@@ -229,3 +229,24 @@ window.SIZES = {
 
   window.PRODUCTS = list;
 })();
+
+/* ==========================================================================
+   Workshop gallery (the cascading photo wall on the Home and Bespoke pages)
+   --------------------------------------------------------------------------
+   Put photos in assets/img/gallery/ and set `src` to the file path.
+   `shape` controls the tile height in the cascade: "tall", "square" or "wide".
+   If a photo is missing, the tile shows an illustration instead (`art`).
+   For stock photos, fill in `credit` and `creditUrl` (Unsplash/Pexels ask
+   for a credit line; it appears when the photo is opened).
+   ========================================================================== */
+window.GALLERY = [
+  { src: "", shape: "tall",   art: "brogue:cognac",    caption: "Full brogue, hand-punched and burnished", credit: "", creditUrl: "" },
+  { src: "", shape: "square", art: "oxford:black",     caption: "Wholecut oxford on the last", credit: "", creditUrl: "" },
+  { src: "", shape: "wide",   art: "chelsea:chocolate",caption: "Chelsea boots waiting for their soles", credit: "", creditUrl: "" },
+  { src: "", shape: "square", art: "pump:red",         caption: "Bespoke bridal pump, made to measure", credit: "", creditUrl: "" },
+  { src: "", shape: "tall",   art: "palm:burgundy",    caption: "Aso-Oke palm slippers for a groom's party", credit: "", creditUrl: "" },
+  { src: "", shape: "wide",   art: "loafer:oxblood",   caption: "Penny loafers, hand-stitched apron", credit: "", creditUrl: "" },
+  { src: "", shape: "wide",   art: "monk:tan",         caption: "Double monk straps with brass buckles", credit: "", creditUrl: "" },
+  { src: "", shape: "square", art: "tote:cognac",      caption: "Vegetable-tanned tote, edges painted by hand", credit: "", creditUrl: "" },
+  { src: "", shape: "tall",   art: "combat:black",     caption: "Welted work boots, built to be resoled", credit: "", creditUrl: "" }
+];
