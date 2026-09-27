@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop | Souls by Zamani</title>
+  <meta name="description" content="Shop handcrafted shoes for men and women, and bags and leather accessories for women. Oxfords, loafers, boots, palm slippers, heels, flats, sneakers, totes, clutches and more.">
+  <meta property="og:title" content="Shop | Souls by Zamani">
+  <meta property="og:description" content="Shop handcrafted shoes for men and women, and bags and leather accessories for women. Oxfords, loafers, boots, palm slippers, heels, flats, sneakers, totes, clutches and more.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#1e1611">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body data-page="shop">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <section class="page-head">
+      <div class="container">
+        <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+        <h1 id="shop-title">Shop all</h1>
+        <p id="shop-sub"></p>
+        <div class="chips" id="shop-cats" style="justify-content:center;margin-top:22px"></div>
+      </div>
+    </section>
+
+    <div class="container shop">
+      <aside class="filters" id="filters" aria-label="Filters">
+        <div class="filters__head">
+          <h3>Filter</h3>
+          <button class="icon-btn" data-filters-close aria-label="Close filters"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+        <div id="filter-body"></div>
+        <div class="filters__apply"><button class="btn btn--dark btn--block" data-filters-close id="apply-btn">Show results</button></div>
+      </aside>
+
+      <div>
+        <div class="shop__bar">
+          <p class="shop__count" id="shop-count"></p>
+          <div class="shop__tools">
+            <button class="btn btn--line filter-btn" id="filter-open">Filter</button>
+            <label><span class="sr-only">Sort by</span>
+              <select class="select" id="sort">
+                <option value="featured">Featured</option>
+                <option value="new">Newest</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+                <option value="name">Name A–Z</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="active-filters" id="active-filters"></div>
+        <div class="grid grid--3" id="shop-grid"></div>
+        <div class="load-more" id="load-more"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/art.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/shop.js"></script>
+</body>
+</html>

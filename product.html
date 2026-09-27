@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product | Souls by Zamani</title>
+  <meta name="description" content="Handcrafted in Lagos by Souls by Zamani.">
+  <meta property="og:title" content="Product | Souls by Zamani">
+  <meta property="og:description" content="Handcrafted in Lagos by Souls by Zamani.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#1e1611">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body data-page="product">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <div class="container" id="pdp-root"></div>
+
+    <section class="section section--paper" id="related-wrap">
+      <div class="container">
+        <div class="section__head"><div><span class="eyebrow">Pairs well with</span><h2>You may also like</h2></div></div>
+        <div class="grid" id="related"></div>
+      </div>
+    </section>
+
+    <section class="section" id="recent-wrap" hidden>
+      <div class="container">
+        <div class="section__head"><div><h2>Recently viewed</h2></div></div>
+        <div class="grid" id="recent"></div>
+      </div>
+    </section>
+
+    <div class="modal" id="size-modal" role="dialog" aria-modal="true" aria-labelledby="size-modal-title">
+      <div class="modal__box">
+        <button class="icon-btn modal__close" data-modal-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <h2 id="size-modal-title">Size guide</h2>
+        <p class="muted">Our shoes are made in EU sizes. Measure your foot from heel to longest toe while standing, then pick the size whose foot length is equal to or just above yours. Between sizes? Size up, or order bespoke for a made-to-measure fit.</p>
+        <div id="size-modal-table"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/art.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/product.js"></script>
+</body>
+</html>

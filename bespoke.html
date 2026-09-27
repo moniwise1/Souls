@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bespoke & Custom Orders | Souls by Zamani</title>
+  <meta name="description" content="Made-to-measure shoes, custom colours, wedding pairs and group orders, handmade by Souls by Zamani in Lagos.">
+  <meta property="og:title" content="Bespoke & Custom Orders | Souls by Zamani">
+  <meta property="og:description" content="Made-to-measure shoes, custom colours, wedding pairs and group orders, handmade by Souls by Zamani in Lagos.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#1e1611">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body data-page="bespoke">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <section class="page-head" style="padding:60px 0 50px">
+      <div class="container">
+        <span class="eyebrow">Bespoke &amp; Custom</span>
+        <h1>Made for you, and only you.</h1>
+        <p>Choose any style, leather and colour. Add your initials. Get a fit made from your own measurements. Tell us what you have in mind and we'll make it by hand.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="bespoke-options reveal">
+          <div class="bespoke-card">
+            <div class="art" data-art="oxford:oxblood"></div>
+            <span class="from">Made to order</span>
+            <h3>Custom colour &amp; leather</h3>
+            <p>Any style from our collection in the leather, colour or sole of your choice. Add monogrammed initials inside.</p>
+            <p><strong>From +15%</strong> on the listed price · 2–3 weeks</p>
+          </div>
+          <div class="bespoke-card">
+            <div class="art" data-art="chelsea:cognac"></div>
+            <span class="from">Made to measure</span>
+            <h3>Bespoke fit</h3>
+            <p>We take your foot measurements (in person in Lagos, or with our guide at home) and adjust the last for a fit that is yours alone.</p>
+            <p><strong>From ₦150,000</strong> · 3–5 weeks</p>
+          </div>
+          <div class="bespoke-card">
+            <div class="art" data-art="pump:gold"></div>
+            <span class="from">Occasions &amp; groups</span>
+            <h3>Weddings &amp; events</h3>
+            <p>Matching pairs for the groom and groomsmen, bridal heels, and aso-ebi coordinated shoes and bags for the whole party.</p>
+            <p><strong>Quote on request</strong> · book 6+ weeks ahead</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--paper">
+      <div class="container">
+        <div class="section__head"><div><span class="eyebrow">How it works</span><h2>Four simple steps</h2></div></div>
+        <div class="steps">
+          <div class="step"><h3>Tell us</h3><p>Fill in the form below or message us on WhatsApp with your idea, photos and budget.</p></div>
+          <div class="step"><h3>Design</h3><p>We agree the style, leather and colours together, and send you a sketch and final quote.</p></div>
+          <div class="step"><h3>Deposit</h3><p>A 50% deposit reserves your slot at the workbench. The balance is due before delivery.</p></div>
+          <div class="step"><h3>Make &amp; deliver</h3><p>We make your piece by hand, share progress photos, then deliver or you collect.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container" style="max-width:820px">
+        <div class="center" style="margin-bottom:34px">
+          <span class="eyebrow">Start here</span>
+          <h2>Request a bespoke piece</h2>
+          <p class="muted">We reply within one working day.</p>
+        </div>
+        <form id="bespoke-form" class="fields" novalidate>
+          <div class="field"><label for="b-name">Your name</label><input id="b-name" name="Name" required></div>
+          <div class="field"><label for="b-phone">Phone / WhatsApp</label><input id="b-phone" name="Phone" type="tel" required></div>
+          <div class="field"><label for="b-email">Email</label><input id="b-email" name="Email" type="email"></div>
+          <div class="field"><label for="b-type">What would you like?</label>
+            <select id="b-type" name="Request">
+              <option>Custom colour / leather</option>
+              <option>Made-to-measure shoes</option>
+              <option>Wedding or event order</option>
+              <option>Custom bag</option>
+              <option>Group or corporate order</option>
+              <option>Something else</option>
+            </select>
+          </div>
+          <div class="field"><label for="b-for">For</label>
+            <select id="b-for" name="For"><option>Men</option><option>Women</option><option>Both / group</option></select>
+          </div>
+          <div class="field"><label for="b-size">Size (EU), if known</label><input id="b-size" name="Size" placeholder="e.g. 43"></div>
+          <div class="field"><label for="b-date">Needed by</label><input id="b-date" name="Needed by" type="date"></div>
+          <div class="field"><label for="b-budget">Budget (₦)</label><input id="b-budget" name="Budget" placeholder="Optional"></div>
+          <div class="field field--full"><label for="b-idea">Describe your idea</label><textarea id="b-idea" name="Idea" required placeholder="Style, colours, occasion, anything that inspires you…"></textarea></div>
+          <div class="field--full" style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn--wa" type="submit" data-via="whatsapp">Send on WhatsApp</button>
+            <button class="btn btn--line" type="submit" data-via="email">Send by email</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/art.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/pages.js"></script>
+</body>
+</html>
