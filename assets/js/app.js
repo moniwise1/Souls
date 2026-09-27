@@ -100,7 +100,7 @@
       const src = p.images[Math.min(idx, p.images.length - 1)];
       return `<img src="${esc(src)}" alt="${esc(p.name)}" loading="lazy">`;
     }
-    return window.ART.svg(catOf(p).art, colour || p.colours[0], { label: p.name, zoom: opts.zoom });
+    return window.ART.svg(p.art || catOf(p).art, colour || p.colours[0], { label: p.name, zoom: opts.zoom });
   }
 
   /* ---------- product card ---------- */

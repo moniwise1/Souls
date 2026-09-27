@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#style-scroller").innerHTML = list.map(([k, c]) => {
       const sample = P.find(p => p.category === k);
       return `<a class="mini-cat" href="shop.html?cat=${k}">
-        <div class="mini-cat__art">${window.ART.svg(c.art, sample ? sample.colours[0] : "cognac")}</div>
+        <div class="mini-cat__art">${window.ART.svg(sample && sample.art || c.art, sample ? sample.colours[0] : "cognac")}</div>
         <span>${c.label}</span>
       </a>`;
     }).join("");

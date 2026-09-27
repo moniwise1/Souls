@@ -168,6 +168,58 @@
         stitch("M100 106 C110 90 150 84 190 94", k) + shine("M140 86 C164 86 188 92 204 100");
     },
 
+    /* --- clogs, fisherman sandals & statement slides --- */
+    clog(k) {
+      return `<path d="M20 106 H220 C224 114 219 124 207 124 H33 C22 124 18 114 20 106 Z" fill="${k.crepe}"/>` +
+        [40, 64, 88, 112, 136, 160, 184].map(x => `<rect x="${x}" y="121" width="14" height="5" rx="1" fill="${k.crepe}"/>`).join("") +
+        `<path d="M22 104 H218 V108 H22 Z" fill="#8a6a45"/>` +
+        `<path d="M22 106 H218" stroke="rgba(255,245,230,.8)" stroke-width="1.4" stroke-dasharray="2 2.5"/>` +
+        `<path d="M26 104 H86 C84 99 80 96 74 96 H32 C26 96 24 100 26 104 Z" fill="${k.l}"/>` +
+        `<path d="M72 104 C74 80 100 66 134 64 C172 62 202 78 213 94 C218 101 217 104 213 104 Z" fill="${k.c}"/>` +
+        stitch("M84 98 C92 80 118 72 140 71", k) + shine("M132 72 C160 70 186 78 202 90");
+    },
+    clogstrap(k) {
+      return SHOES.clog(k) +
+        `<path d="M100 72 C112 68 124 70 130 76 L126 102 C116 100 106 100 98 102 Z" fill="${k.d}"/>` +
+        `<rect x="104" y="80" width="16" height="12" rx="2" fill="#cfd2d4" stroke="#8e9398" stroke-width="1"/>`;
+    },
+    fisherman(k) {
+      return `<path d="M20 108 H220 C223 115 219 122 208 122 H32 C22 122 18 116 20 108 Z" fill="#1d1b1a"/>` +
+        `<path d="M22 100 H218 V110 H22 Z" fill="#b8875a"/>` +
+        [30, 60, 90, 120, 150, 180, 205].map(x => `<circle cx="${x}" cy="105" r="1.3" fill="rgba(80,50,25,.45)"/>`).join("") +
+        `<path d="M96 100 C100 76 130 64 162 66 C192 68 210 84 214 98 L214 100 Z" fill="${k.c}"/>` +
+        `<path d="M56 100 C56 88 66 80 92 78 L98 92 C82 92 72 96 72 100 Z" fill="${k.c}"/>` +
+        `<path d="M42 98 C36 76 50 60 70 66" fill="none" stroke="${k.c}" stroke-width="8" stroke-linecap="round"/>` +
+        `<circle cx="66" cy="70" r="3.4" fill="#9aa0a4"/>` +
+        Array.from({ length: 18 }, (_, i) => `<rect x="${118 + (i % 6) * 13 + (Math.floor(i / 6) % 2) * 6}" y="${76 + Math.floor(i / 6) * 7}" width="3.4" height="3.4" fill="${k.dd}"/>`).join("") +
+        stitch("M102 96 C108 78 134 70 160 71", k);
+    },
+    doublestrap(k) {
+      return `<path d="M22 104 H218 C225 104 226 122 212 124 H32 C19 124 17 106 22 104 Z" fill="#1d1b1a"/>` +
+        `<path d="M24 100 H216 C220 100 221 106 217 106 H24 Z" fill="${k.l}"/>` +
+        `<path d="M86 102 C88 80 112 76 124 80 L128 102 Z" fill="${k.c}"/>` +
+        `<path d="M146 102 C148 78 186 74 200 86 L204 102 Z" fill="${k.c}"/>` +
+        stitch("M92 98 C94 84 110 81 120 84 M152 98 C154 82 182 79 196 88", k) +
+        `<rect x="98" y="84" width="11" height="9" rx="1.5" fill="none" stroke="#9aa0a4" stroke-width="2"/>` +
+        `<rect x="164" y="82" width="11" height="9" rx="1.5" fill="none" stroke="#9aa0a4" stroke-width="2"/>`;
+    },
+    crossslide(k) {
+      return `<path d="M22 104 H218 C225 104 226 122 212 124 H32 C19 124 17 106 22 104 Z" fill="${k.dd}"/>` +
+        `<path d="M24 100 H216 C220 100 221 106 217 106 H24 Z" fill="${k.l}"/>` +
+        `<path d="M100 102 C108 80 150 70 188 80 L196 102 Z" fill="${k.c}"/>` +
+        `<path d="M110 102 C124 88 160 82 196 90" fill="none" stroke="${k.d}" stroke-width="10"/>` +
+        `<path d="M104 90 C130 82 170 82 194 100" fill="none" stroke="${k.dd}" stroke-width="1.2" opacity=".5"/>` +
+        `<rect x="176" y="84" width="12" height="12" rx="2" fill="none" stroke="${k.dd}" stroke-width="2.4"/>`;
+    },
+    runner(k) {
+      return `<path d="M22 106 H220 C223 114 217 124 206 124 H34 C26 124 21 118 22 106 Z" fill="#f4f1ec" stroke="rgba(0,0,0,.08)"/>` +
+        `<path d="M24 118 H216 C213 123 210 125 206 125 H34 C28 125 25 122 24 118 Z" fill="#c9965a"/>` +
+        `<path d="M28 106 C25 88 32 74 48 68 L92 60 C104 54 118 54 126 62 C150 74 186 84 206 92 C218 96 222 102 218 106 Z" fill="${k.c}"/>` +
+        `<path d="M70 106 C72 86 84 72 100 64 L128 64 C112 74 104 90 104 106 Z" fill="${k.l}" opacity=".55"/>` +
+        line("M98 62 L118 70 M102 58 L122 66", "#f4f1ec", 2.4) +
+        stitch("M40 98 C80 96 150 96 206 100", k) + shine("M150 78 C170 84 190 90 204 96");
+    },
+
     /* --- women's --- */
     pump(k) {
       return stiletto(k) + pumpSole(k) + `<path d="${pumpUpper}" fill="${k.c}"/>` +
@@ -345,7 +397,9 @@
       const k = palette(this.colourHex(colourKey));
       const isShoe = !!SHOES[artKey];
       const fn = SHOES[artKey] || BAGS[artKey] || SHOES.oxford;
-      const vb = opts.zoom ? (isShoe ? "110 50 120 75" : "40 50 120 120") : (isShoe ? "0 0 240 150" : "0 0 200 200");
+      const LOW = ["oxford", "brogue", "monk", "loafer", "driver", "espadrille", "sneaker", "runner", "sandal", "slide", "palm", "mule", "flat", "maryjane", "clog", "clogstrap", "fisherman", "doublestrap", "crossslide"];
+      const vb = opts.zoom ? (isShoe ? "110 50 120 75" : "40 50 120 120")
+        : isShoe ? (LOW.includes(artKey) ? "14 46 216 90" : "0 0 240 150") : "0 0 200 200";
       const shadow = isShoe
         ? `<ellipse cx="122" cy="131" rx="104" ry="6" fill="rgba(40,25,15,.12)"/>`
         : `<ellipse cx="100" cy="184" rx="78" ry="7" fill="rgba(40,25,15,.12)"/>`;

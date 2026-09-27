@@ -61,6 +61,8 @@ window.CATEGORIES = {
   "palm-slippers":  { label: "Palm Slippers",     gender: "men",   dept: "shoes", group: "Sandals & Slides", art: "palm" },
   "men-slides":     { label: "Slides",            gender: "men",   dept: "shoes", group: "Sandals & Slides", art: "slide" },
   "men-mules":      { label: "Mules & Babouche",  gender: "men",   dept: "shoes", group: "Sandals & Slides", art: "mule" },
+  "men-clogs":      { label: "Clogs & Backless Loafers", gender: "men", dept: "shoes", group: "Sandals & Slides", art: "clog" },
+  "fisherman":      { label: "Fisherman Sandals", gender: "men",   dept: "shoes", group: "Sandals & Slides", art: "fisherman" },
 
   // ---- Women's shoes ----
   "pumps":          { label: "Pumps & Stilettos", gender: "women", dept: "shoes", group: "Heels",   art: "pump" },
@@ -79,6 +81,7 @@ window.CATEGORIES = {
   "women-sneakers": { label: "Sneakers",          gender: "women", dept: "shoes", group: "Casual",  art: "sneaker" },
   "women-sandals":  { label: "Flat Sandals",      gender: "women", dept: "shoes", group: "Casual",  art: "sandal" },
   "women-slides":   { label: "Slides",            gender: "women", dept: "shoes", group: "Casual",  art: "slide" },
+  "women-clogs":    { label: "Clogs",             gender: "women", dept: "shoes", group: "Casual",  art: "clog" },
   "women-espadrilles": { label: "Espadrilles",    gender: "women", dept: "shoes", group: "Casual",  art: "espadrille" },
 
   // ---- Women's bags ----
@@ -158,6 +161,23 @@ window.SIZES = {
   P("men","shoes","men-mules","Babouche Mule", 52000, ["chocolate","black","olive"], { badges:["new"] });
   P("men","shoes","men-mules","Suede Backless Loafer", 58000, ["sand","navy"], {});
 
+  /* Styles added from the owner's design references */
+  P("men","shoes","men-clogs","Heritage Suede Clog", 55000, ["camel","chocolate","olive","cream"], { badges:["new","handmade"], material:"Calf suede, stitched welt, lug sole", art:"clog" });
+  P("men","shoes","men-clogs","Buckle-Strap Suede Clog", 58000, ["sand","black","grey"], { badges:["new"], material:"Calf suede, cork footbed", art:"clogstrap" });
+  P("men","shoes","men-clogs","Woven Suede Mule", 54000, ["camel","chocolate","black"], { badges:["handmade"], material:"Hand-woven suede strips, cork footbed", art:"clog" });
+  P("men","shoes","men-clogs","Backless Penny Loafer", 56000, ["sand","black","chocolate"], { badges:["new"], material:"Suede, chunky crepe sole", art:"clog" });
+  P("men","shoes","men-clogs","Suede House Slipper", 38000, ["sand","grey","navy"], { material:"Suede with soft shearling-feel lining", art:"clog" });
+  P("men","shoes","fisherman","Perforated Fisherman Sandal", 52000, ["cream","tan","black","chocolate"], { badges:["new","handmade"], material:"Nubuck leather, cork footbed, rubber sole" });
+  P("men","shoes","men-slides","Double-Buckle Suede Slide", 42000, ["cognac","black","sand"], { badges:["bestseller","handmade"], material:"Suede straps, cork footbed", art:"doublestrap" });
+  P("men","shoes","men-slides","Double-Strap Comfort Slide", 40000, ["cognac","black","olive"], { material:"Suede straps with adjustable tabs, cushioned sole", art:"doublestrap" });
+  P("men","shoes","men-slides","Platform Double-Strap Slide", 45000, ["black","chocolate"], { badges:["new"], material:"Nubuck leather, lug platform sole", art:"doublestrap" });
+  P("men","shoes","men-slides","Crossover Buckle Slide", 44000, ["black","tan","chocolate"], { badges:["new"], material:"Smooth leather crossover straps", art:"crossslide" });
+  P("men","shoes","men-slides","Two-Tone Cross Slide", 40000, ["camel","grey","olive"], { material:"Suede and leather, cushioned footbed", art:"crossslide" });
+  P("men","shoes","men-slides","Penny Suede Slide", 36000, ["chocolate","cognac","black"], { badges:["handmade"], material:"Suede with leather penny strap" });
+  P("men","shoes","men-slides","Classic Suede Slide", 34000, ["cognac","sand","black","navy"], { material:"Suede upper, leather footbed" });
+  P("men","shoes","men-sneakers","Burnished Leather Runner", 78000, ["chocolate","black","cognac"], { badges:["new","handmade"], material:"Hand-burnished calf leather, lightweight sole", art:"runner" });
+  P("men","shoes","men-sneakers","Stripe Court Sneaker", 66000, ["white","cream","black"], { material:"Nappa leather, gum rubber cupsole" });
+
   /* ---------------------------- WOMEN'S SHOES ---------------------------- */
   P("women","shoes","pumps","The Amara Pointed Pump", 78000, ["black","nude","red"], { badges:["bestseller"], material:"Nappa leather, 100mm heel" });
   P("women","shoes","pumps","Patent Stiletto", 84000, ["black","red","nude"], { material:"Patent leather, 110mm heel" });
@@ -195,6 +215,11 @@ window.SIZES = {
   P("women","shoes","women-slides","Padded Slide", 40000, ["cream","black","lilac"], { badges:["new"] });
   P("women","shoes","women-slides","Twist Knot Slide", 36000, ["tan","black","terracotta"], {});
   P("women","shoes","women-espadrilles","Lace-Up Espadrille", 44000, ["cream","black"], {});
+
+  P("women","shoes","women-clogs","Soft Suede Clog", 52000, ["blush","camel","cream","olive"], { badges:["new"], material:"Calf suede, cork footbed, lug sole", art:"clog" });
+  P("women","shoes","women-clogs","Buckle Clog", 54000, ["sand","black","lilac"], { material:"Suede with metal-plate strap", art:"clogstrap" });
+  P("women","shoes","women-slides","Double-Buckle Slide (W)", 40000, ["cognac","cream","black"], { badges:["bestseller"], material:"Suede straps, cork footbed", art:"doublestrap" });
+  P("women","shoes","women-sneakers","Stripe Court Sneaker (W)", 62000, ["white","blush","cream"], { material:"Nappa leather, gum rubber cupsole" });
 
   /* ---------------------------- WOMEN'S BAGS ----------------------------- */
   P("women","bags","totes","The Zamani Tote", 145000, ["cognac","black","cream"], { badges:["bestseller","handmade"], material:"Vegetable-tanned leather" });

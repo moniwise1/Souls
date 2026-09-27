@@ -14,9 +14,9 @@ It is a plain HTML, CSS and JavaScript website with no build step and no server 
 | Bag and checkout (delivery options, discount codes, 4 payment methods) | `cart.html`, `checkout.html` |
 | Wishlist, Our Story, Bespoke orders, Contact, Help (delivery, returns, size guide, care, FAQs), 404 | other `.html` files |
 
-**Catalogue:** 98 products across 47 categories.
-- **Men's shoes:** oxfords, derbies, brogues, monk straps, loafers, Chelsea, chukka and combat boots, sneakers, boat shoes, drivers, espadrilles, sandals, palm slippers, slides and mules.
-- **Women's shoes:** pumps, block heels, kitten heels, slingbacks, heeled sandals, wedges, ballet flats, Mary Janes, loafers, mules, ankle, knee-high and Chelsea boots, sneakers, sandals, slides and espadrilles.
+**Catalogue:** 117 products across 50 categories.
+- **Men's shoes:** oxfords, derbies, brogues, monk straps, loafers, Chelsea, chukka and combat boots, sneakers, boat shoes, drivers, espadrilles, sandals, fisherman sandals, palm slippers, slides, mules, clogs and backless loafers.
+- **Women's shoes:** pumps, block heels, kitten heels, slingbacks, heeled sandals, wedges, ballet flats, Mary Janes, loafers, mules, ankle, knee-high and Chelsea boots, sneakers, sandals, slides, clogs and espadrilles.
 - **Women's bags:** totes, top-handle, shoulder, crossbody, clutches, mini, bucket bags and backpacks.
 - **Women's accessories:** belts, wallets, card holders, key holders and charms, pouches and watch straps.
 
