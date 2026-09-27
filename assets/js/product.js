@@ -24,6 +24,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Gallery views: with photos, use them; otherwise main illustration, detail zoom, and other colours
   function views() {
+    if (p.photos) {
+      const v = [0, 1, 2].map(i => ({ html: media(p, colour, { index: i }) }));
+      p.colours.filter(k => k !== colour).forEach(k => v.push({ html: media(p, k), colour: k }));
+      return v;
+    }
     if (p.images && p.images.length) return p.images.map((_, i) => ({ html: media(p, colour, { index: i }) }));
     const v = [{ html: media(p, colour) }, { html: media(p, colour, { zoom: true }) }];
     p.colours.filter(k => k !== colour).forEach(k => v.push({ html: media(p, k), colour: k }));
@@ -66,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="eyebrow">${esc(c.label)}${p.badges.includes("handmade") ? " · Artisan special" : ""}</span>
           <h1 class="pdp__title">${esc(p.name)}</h1>
           <p class="pdp__price">${priceHtml(p)}${saving ? `<span class="pdp__save">Save ${saving}%</span>` : ""}</p>
-          <p class="pdp__tax">Item ${p.sku}. Delivery worked out at checkout.</p>
+          <p class="pdp__tax">Item ${p.sku}. Delivery worked out at checkout.${p.photos ? "<br>Photo shows the style. Each pair is handmade to order, so leather tone and finish may vary slightly." : ""}</p>
 
           <div class="opt">
             <div class="opt__label"><b>Colour</b><span>${esc(window.COLOURS[colour].name)}</span></div>

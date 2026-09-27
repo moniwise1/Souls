@@ -7,25 +7,24 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#stat-styles").textContent = P.length + "+";
   $("#stat-cats").textContent = Object.keys(CATS).length;
 
-  // Hero: rotate through pairs of pieces
+  // Hero: rotate through pairs of product photos
+  const ph = (id, c, v) => `assets/img/products/${id}/${c}-${v || 1}.jpg`;
   const pairs = [
-    [["clog", "camel"], ["doublestrap", "cognac"]],
-    [["runner", "chocolate"], ["fisherman", "cream"]],
-    [["oxford", "cognac"], ["pump", "red"]],
-    [["crossslide", "black"], ["clogstrap", "blush"]],
-    [["chelsea", "black"], ["tote", "cognac"]],
-    [["loafer", "oxblood"], ["slingback", "cream"]],
-    [["palm", "burgundy"], ["clutch", "emerald"]],
-    [["sneaker", "white"], ["heelsandal", "gold"]]
+    [ph("woven-suede-mule", "camel"), ph("double-buckle-suede-slide", "cognac")],
+    [ph("burnished-leather-runner", "chocolate"), ph("perforated-fisherman-sandal", "cream")],
+    [ph("backless-penny-loafer", "sand"), ph("penny-suede-slide", "chocolate")],
+    [ph("double-strap-comfort-slide", "cognac"), ph("crossover-buckle-slide", "black")],
+    [ph("stripe-court-sneaker", "white"), ph("platform-double-strap-slide", "black")]
   ];
   let i = 0;
   const a = $("#hero-a"), b = $("#hero-b");
+  a.classList.add("hero__photo"); b.classList.add("hero__photo");
   function showPair() {
     const [x, y] = pairs[i % pairs.length];
     [a, b].forEach(el => { el.style.opacity = 0; el.style.transform = "translateY(12px)"; });
     setTimeout(() => {
-      a.innerHTML = window.ART.svg(x[0], x[1]);
-      b.innerHTML = window.ART.svg(y[0], y[1]);
+      a.innerHTML = `<img src="${x}" alt="">`;
+      b.innerHTML = `<img src="${y}" alt="">`;
       [a, b].forEach(el => { el.style.opacity = 1; el.style.transform = "none"; });
     }, i === 0 ? 0 : 500);
     i++;
@@ -35,14 +34,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Department tiles
   const tiles = [
-    { title: "Men's Shoes", href: "shop.html?gender=men", art: ["brogue", "cognac"], n: P.filter(p => p.gender === "men").length },
+    { title: "Men's Shoes", href: "shop.html?gender=men", photo: ph("burnished-leather-runner", "chocolate"), n: P.filter(p => p.gender === "men").length },
     { title: "Women's Shoes", href: "shop.html?gender=women&dept=shoes", art: ["pump", "nude"], n: P.filter(p => p.gender === "women" && p.dept === "shoes").length },
     { title: "Bags", href: "shop.html?dept=bags", art: ["handbag", "burgundy"], n: P.filter(p => p.dept === "bags").length },
     { title: "Accessories", href: "shop.html?dept=accessories", art: ["belt", "tan"], n: P.filter(p => p.dept === "accessories").length }
   ];
   $("#tiles").innerHTML = tiles.map(t => `
     <a class="tile" href="${t.href}">
-      <div class="tile__art">${window.ART.svg(t.art[0], t.art[1])}</div>
+      <div class="tile__art">${t.photo ? `<img src="${t.photo}" alt="">` : window.ART.svg(t.art[0], t.art[1])}</div>
       <h3>${t.title}</h3>
       <span>${t.n} styles ${ICON.arrow}</span>
     </a>`).join("");
@@ -52,9 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const list = Object.entries(CATS).filter(([, c]) =>
       tab === "men" ? c.gender === "men" : tab === "women" ? c.gender === "women" && c.dept === "shoes" : c.dept !== "shoes");
     $("#style-scroller").innerHTML = list.map(([k, c]) => {
-      const sample = P.find(p => p.category === k);
+      const sample = P.find(p => p.category === k && p.photos) || P.find(p => p.category === k);
       return `<a class="mini-cat" href="shop.html?cat=${k}">
-        <div class="mini-cat__art">${window.ART.svg(sample && sample.art || c.art, sample ? sample.colours[0] : "cognac")}</div>
+        <div class="mini-cat__art">${sample && sample.photos ? window.SBZ.media(sample) : window.ART.svg(sample && sample.art || c.art, sample ? sample.colours[0] : "cognac")}</div>
         <span>${c.label}</span>
       </a>`;
     }).join("");

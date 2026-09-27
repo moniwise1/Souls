@@ -96,6 +96,11 @@
   function media(p, colour, opts) {
     opts = opts || {};
     const idx = opts.index || 0;
+    if (p.photos) {
+      const c = p.photos[colour] ? colour : Object.keys(p.photos)[0];
+      const view = opts.zoom ? 3 : idx + 1;
+      return `<img src="assets/img/products/${p.photos[c]}/${c}-${view}.jpg" alt="${esc(p.name)}, ${esc(window.COLOURS[c].name)}" loading="lazy">`;
+    }
     if (p.images && p.images.length) {
       const src = p.images[Math.min(idx, p.images.length - 1)];
       return `<img src="${esc(src)}" alt="${esc(p.name)}" loading="lazy">`;
@@ -157,7 +162,7 @@
           e.preventDefault();
           el.dataset.colour = sw.dataset.swatch;
           $$(".swatch", el).forEach(s => s.classList.toggle("is-on", s === sw));
-          if (!p.images || !p.images.length) $(".card__img", el).innerHTML = media(p, sw.dataset.swatch);
+          if (p.photos || !p.images || !p.images.length) $(".card__img", el).innerHTML = media(p, sw.dataset.swatch);
           $(".card__img", el).href = `product.html?id=${p.id}&colour=${sw.dataset.swatch}`;
           return;
         }
