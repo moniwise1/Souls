@@ -99,7 +99,7 @@
     if (p.photos) {
       const c = p.photos[colour] ? colour : Object.keys(p.photos)[0];
       const view = opts.zoom ? 3 : idx + 1;
-      return `<img src="assets/img/products/${p.photos[c]}/${c}-${view}.jpg" alt="${esc(p.name)}, ${esc(window.COLOURS[c].name)}" loading="lazy">`;
+      return `<img src="assets/img/products/${p.photos[c]}/${c}-${view}.webp" alt="${esc(p.name)}, ${esc(window.COLOURS[c].name)}" loading="lazy">`;
     }
     if (p.images && p.images.length) {
       const src = p.images[Math.min(idx, p.images.length - 1)];

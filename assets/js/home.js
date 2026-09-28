@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#stat-cats").textContent = Object.keys(CATS).length;
 
   // Hero: rotate through pairs of product photos
-  const ph = (id, c, v) => `assets/img/products/${id}/${c}-${v || 1}.jpg`;
+  const ph = (id, c, v) => `assets/img/products/${id}/${c}-${v || 1}.webp`;
   const pairs = [
     [ph("woven-suede-mule", "camel"), ph("double-buckle-suede-slide", "cognac")],
     [ph("burnished-leather-runner", "chocolate"), ph("perforated-fisherman-sandal", "cream")],
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   let i = 0;
   const a = $("#hero-a"), b = $("#hero-b");
-  a.classList.add("hero__photo"); b.classList.add("hero__photo");
+  a.classList.add("hero__float"); b.classList.add("hero__float");
   function showPair() {
     const [x, y] = pairs[i % pairs.length];
     [a, b].forEach(el => { el.style.opacity = 0; el.style.transform = "translateY(12px)"; });
