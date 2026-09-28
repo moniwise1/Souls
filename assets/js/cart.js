@@ -1,5 +1,5 @@
 /* Bag page */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("sbz:ready", () => {
   const { $, esc, Cart, money, lineHtml, bindLines, shipBar, card, bindCards, ICON } = window.SBZ;
   const root = $("#cart-root");
 

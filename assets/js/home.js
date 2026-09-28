@@ -1,5 +1,5 @@
 /* Home page */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("sbz:ready", () => {
   const { $, $$, card, bindCards, ICON, initReveal } = window.SBZ;
   const P = window.PRODUCTS;
   const CATS = window.CATEGORIES;

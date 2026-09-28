@@ -1,5 +1,5 @@
 /* Shop / listing page */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("sbz:ready", () => {
   const { $, $$, esc, card, bindCards, money, searchProducts, initReveal } = window.SBZ;
   const P = window.PRODUCTS;
   const CATS = window.CATEGORIES;

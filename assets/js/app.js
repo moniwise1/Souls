@@ -5,7 +5,7 @@
 
 (function () {
   const S = window.SITE;
-  const CATS = window.CATEGORIES;
+  const CATS = window.CATEGORIES; // mutated in place by Backend.loadCatalogue
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -28,6 +28,7 @@
   const deptLabel = p => p.dept === "shoes" ? (p.gender === "men" ? "Men's Shoes" : "Women's Shoes") : p.dept === "bags" ? "Bags" : "Accessories";
 
   function describe(p) {
+    if (p.description) return p.description;
     const c = catOf(p);
     const base = {
       shoes: `Cut, lasted and stitched by hand in our Lagos workshop, the ${p.name} is our take on the classic ${c.label.toLowerCase().replace(/s$/, "")}. ${p.material} is shaped over a last built for all-day comfort, with a cushioned leather footbed that moulds to you with every wear.`,
@@ -96,6 +97,12 @@
   function media(p, colour, opts) {
     opts = opts || {};
     const idx = opts.index || 0;
+    if (p.gallery) {
+      const c = p.gallery[colour] ? colour : Object.keys(p.gallery)[0];
+      const list = p.gallery[c] || [];
+      const src = opts.zoom ? (list[2] || list[0]) : (list[Math.min(idx, list.length - 1)] || list[0]);
+      if (src) return `<img src="${esc(src)}" alt="${esc(p.name)}${window.COLOURS[c] ? ", " + esc(window.COLOURS[c].name) : ""}" loading="lazy">`;
+    }
     if (p.photos) {
       const c = p.photos[colour] ? colour : Object.keys(p.photos)[0];
       const view = opts.zoom ? 3 : idx + 1;
@@ -162,7 +169,7 @@
           e.preventDefault();
           el.dataset.colour = sw.dataset.swatch;
           $$(".swatch", el).forEach(s => s.classList.toggle("is-on", s === sw));
-          if (p.photos || !p.images || !p.images.length) $(".card__img", el).innerHTML = media(p, sw.dataset.swatch);
+          if (p.gallery || p.photos || !p.images || !p.images.length) $(".card__img", el).innerHTML = media(p, sw.dataset.swatch);
           $(".card__img", el).href = `product.html?id=${p.id}&colour=${sw.dataset.swatch}`;
           return;
         }
@@ -567,7 +574,7 @@
               <a href="${S.social.facebook}" target="_blank" rel="noopener">Facebook</a>
               <a href="${S.social.x}" target="_blank" rel="noopener">X</a>
             </div>
-            <p class="pay">We accept: Card · Bank transfer · USSD · Pay on delivery (Lagos)</p>
+            <p class="pay">We accept: Card · Bank transfer · USSD · Pay on delivery (Lagos) · <a href="admin/" rel="nofollow">Staff login</a></p>
           </div>
         </div>
       </footer>
@@ -645,9 +652,13 @@
     get currency() { return currency; }
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
+  // Load the live catalogue (if a database is connected), then draw the page.
+  // Page scripts listen for "sbz:ready" instead of DOMContentLoaded.
+  document.addEventListener("DOMContentLoaded", async () => {
+    if (window.Backend) await window.Backend.loadCatalogue();
     renderHeader();
     renderFooter();
+    document.dispatchEvent(new CustomEvent("sbz:ready"));
     initReveal();
   });
 })();

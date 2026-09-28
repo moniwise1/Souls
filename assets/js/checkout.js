@@ -1,5 +1,5 @@
 /* Checkout & order confirmation */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("sbz:ready", () => {
   const { $, $$, esc, Cart, byId, money, media, store, ICON, currency } = window.SBZ;
   const S = window.SITE;
   const root = $("#checkout-root");
@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const draft = store.get("checkout", {});
   let promo = store.get("promo", "");
+  let promoPct = 0;
   let shipId = draft.ship || "lagos";
   let pay = draft.pay || (S.paystackPublicKey ? "card" : "transfer");
 
@@ -29,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function totals() {
     const sub = Cart.subtotal();
-    const pct = S.promoCodes[promo] || 0;
+    const pct = promo ? promoPct : 0;
     const discount = Math.round(sub * pct / 100);
     const opt = S.shipping.options.find(o => o.id === shipId) || S.shipping.options[0];
     const freeApplies = !opt.noFree && sub - discount >= S.shipping.freeOver;
@@ -54,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const p = byId(l.id);
         return `<div class="line">
           <div class="line__img">${media(p, l.colour)}<span class="q">${l.qty}</span></div>
-          <div class="line__info"><span class="line__name">${esc(p.name)}</span><p class="line__meta">${esc(window.COLOURS[l.colour].name)}${l.size !== "One size" ? " · EU " + esc(l.size) : ""}</p></div>
+          <div class="line__info"><span class="line__name">${esc(p.name)}</span><p class="line__meta">${esc((window.COLOURS[l.colour] || { name: l.colour }).name)}${l.size !== "One size" ? " · EU " + esc(l.size) : ""}</p></div>
           <p class="line__price">${money(p.price * l.qty)}</p>
         </div>`;
       }).join("")}</div>
@@ -128,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       promo = $("#promo-input").value.trim().toUpperCase();
       store.set("promo", promo);
-      render();
+      window.Backend.checkPromo(promo).then(p => { promoPct = p; render(); }).catch(() => { promoPct = 0; render(); });
     });
   }
 
@@ -180,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function waText(o) {
-    const lines = o.items.map(i => `• ${i.name} (${window.COLOURS[i.colour].name}${i.size !== "One size" ? ", EU " + i.size : ""}) x${i.qty}: ₦${(i.price * i.qty).toLocaleString("en-NG")}`);
+    const lines = o.items.map(i => `• ${i.name} (${(window.COLOURS[i.colour] || { name: i.colour }).name}${i.size !== "One size" ? ", EU " + i.size : ""}) x${i.qty}: ₦${(i.price * i.qty).toLocaleString("en-NG")}`);
     return [
       `Hello Souls by Zamani! I'd like to place order ${o.id}:`,
       ...lines,
@@ -196,6 +197,21 @@ document.addEventListener("DOMContentLoaded", () => {
     ].filter(Boolean).join("\n");
   }
 
+  function busy(on) {
+    const b = $("#place-btn");
+    if (b) { b.disabled = on; if (on) b.textContent = "Placing your order…"; }
+  }
+
+  // Saves the order to the store's database (live) or the admin demo, and in
+  // live mode takes the server-calculated total as the one customers pay.
+  async function record(o) {
+    const res = await window.Backend.placeOrder(o);
+    if (res && window.Backend.LIVE) {
+      Object.assign(o, { id: res.id, subtotal: res.subtotal, discount: res.discount, shipCost: res.shipping, total: res.total });
+    }
+    return o;
+  }
+
   function finish(o) {
     const orders = store.get("orders", []);
     orders.unshift(o);
@@ -206,11 +222,22 @@ document.addEventListener("DOMContentLoaded", () => {
     location.href = `checkout.html?order=${o.id}`;
   }
 
-  function placeOrder() {
+  async function placeOrder() {
     if (!validate()) return;
     const o = buildOrder();
-    if (pay === "card") return payWithPaystack(o);
-    finish(o);
+    o.shipId = shipId;
+    busy(true);
+    try {
+      if (pay === "card") {
+        if (window.Backend.LIVE) await record(o);   // create the order first, then take payment
+        return payWithPaystack(o);
+      }
+      await record(o);
+      finish(o);
+    } catch (e) {
+      busy(false); refreshSummary();
+      alert("Sorry, we couldn't place your order: " + e.message);
+    }
   }
 
   function payWithPaystack(o) {
@@ -222,8 +249,12 @@ document.addEventListener("DOMContentLoaded", () => {
         currency: "NGN",
         ref: o.id + "-" + Math.floor(Math.random() * 1e6),
         metadata: { custom_fields: [{ display_name: "Order", variable_name: "order", value: o.id }, { display_name: "Phone", variable_name: "phone", value: o.customer.phone }] },
-        callback: resp => { o.paymentRef = resp.reference; finish(o); },
-        onClose: () => window.SBZ.toast("Payment window closed. Your bag is saved.")
+        callback: resp => {
+          o.paymentRef = resp.reference;
+          const done = () => finish(o);
+          if (window.Backend.LIVE) done(); else record(o).then(done, done);
+        },
+        onClose: () => { busy(false); refreshSummary(); window.SBZ.toast("Payment window closed. Your bag is saved."); }
       });
       handler.openIframe();
     };
@@ -260,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${o.pay !== "card" ? `<a class="btn btn--wa" target="_blank" rel="noopener" href="https://wa.me/${S.whatsapp}?text=${encodeURIComponent(waText(o))}">${ICON.whatsapp} ${o.pay === "whatsapp" ? "Open WhatsApp again" : "Send order on WhatsApp"}</a>` : ""}
         <div class="summary">
           <h3>Order summary</h3>
-          ${o.items.map(i => `<div class="sum-row"><span>${esc(i.name)} · ${esc(window.COLOURS[i.colour].name)}${i.size !== "One size" ? " · EU " + esc(i.size) : ""} × ${i.qty}</span><span>${naira(i.price * i.qty)}</span></div>`).join("")}
+          ${o.items.map(i => `<div class="sum-row"><span>${esc(i.name)} · ${esc((window.COLOURS[i.colour] || { name: i.colour }).name)}${i.size !== "One size" ? " · EU " + esc(i.size) : ""} × ${i.qty}</span><span>${naira(i.price * i.qty)}</span></div>`).join("")}
           ${o.discount ? `<div class="sum-row"><span>Discount</span><span>−${naira(o.discount)}</span></div>` : ""}
           <div class="sum-row"><span>${esc(o.ship)}</span><span>${o.shipCost ? naira(o.shipCost) : "Free"}</span></div>
           <div class="sum-row sum-row--total"><strong>Total</strong><strong>${naira(o.total)}</strong></div>
@@ -271,4 +302,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   render();
+  if (promo) window.Backend.checkPromo(promo).then(p => { promoPct = p; if (p) render(); }).catch(() => {});
 });

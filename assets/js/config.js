@@ -53,7 +53,15 @@ window.SITE = {
     accountNumber: "0000000000"
   },
 
+  // Online database for the admin backend (see ADMIN.md). Paste your Supabase
+  // Project URL and anon public key here. Leave empty for demo mode.
+  supabase: {
+    url: "",
+    anonKey: ""
+  },
+
   // Discount codes customers can use at checkout (percent off).
+  // (Once Supabase is connected, codes are managed in the admin instead.)
   promoCodes: {
     WELCOME10: 10,
     SOULS15: 15

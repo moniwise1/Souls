@@ -1,5 +1,5 @@
 /* Content pages: wishlist, about, bespoke, contact, help */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("sbz:ready", () => {
   const { $, $$, esc, card, bindCards, money, sizeTable, Wish, initReveal } = window.SBZ;
   const S = window.SITE;
 

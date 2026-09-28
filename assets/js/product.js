@@ -1,5 +1,5 @@
 /* Product detail page */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("sbz:ready", () => {
   const { $, $$, esc, byId, catOf, sizesOf, deptLabel, describe, money, media, card, bindCards, priceHtml, Cart, Wish, ICON, store, sizeTable, initReveal } = window.SBZ;
   const S = window.SITE;
   const params = new URLSearchParams(location.search);
@@ -24,8 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Gallery views: with photos, use them; otherwise main illustration, detail zoom, and other colours
   function views() {
-    if (p.photos) {
-      const v = [0, 1, 2].map(i => ({ html: media(p, colour, { index: i }) }));
+    if (p.gallery || p.photos) {
+      const n = p.gallery ? Math.max(1, (p.gallery[colour] || Object.values(p.gallery)[0] || []).length) : 3;
+      const v = [...Array(n).keys()].map(i => ({ html: media(p, colour, { index: i }) }));
       p.colours.filter(k => k !== colour).forEach(k => v.push({ html: media(p, k), colour: k }));
       return v;
     }
@@ -71,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="eyebrow">${esc(c.label)}${p.badges.includes("handmade") ? " · Artisan special" : ""}</span>
           <h1 class="pdp__title">${esc(p.name)}</h1>
           <p class="pdp__price">${priceHtml(p)}${saving ? `<span class="pdp__save">Save ${saving}%</span>` : ""}</p>
-          <p class="pdp__tax">Item ${p.sku}. Delivery worked out at checkout.${p.photos ? "<br>Photo shows the style. Each pair is handmade to order, so leather tone and finish may vary slightly." : ""}</p>
+          <p class="pdp__tax">Item ${p.sku}. Delivery worked out at checkout.${p.gallery || p.photos ? "<br>Photo shows the style. Each pair is handmade to order, so leather tone and finish may vary slightly." : ""}</p>
 
           <div class="opt">
             <div class="opt__label"><b>Colour</b><span>${esc(window.COLOURS[colour].name)}</span></div>

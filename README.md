@@ -20,6 +20,10 @@ It is a plain HTML, CSS and JavaScript website with no build step and no server 
 - **Women's bags:** totes, top-handle, shoulder, crossbody, clutches, mini, bucket bags and backpacks.
 - **Women's accessories:** belts, wallets, card holders, key holders and charms, pouches and watch straps.
 
+## Admin backend
+
+Manage products, categories, orders, customers, payments, discount codes, staff and roles at **`/admin/`**. It works in demo mode straight away. See **[ADMIN.md](ADMIN.md)** to connect the free Supabase database and go live.
+
 ## Brand
 
 | Colour | Hex | Use |
