@@ -54,10 +54,10 @@ window.SITE = {
   },
 
   // Online database for the admin backend (see ADMIN.md). Paste your Supabase
-  // Project URL and anon public key here. Leave empty for demo mode.
+  // Project URL and publishable (anon) key here. Leave empty for demo mode.
   supabase: {
-    url: "",
-    anonKey: ""
+    url: "https://bwtkxgmqtztyqnbfbvqy.supabase.co",
+    anonKey: "sb_publishable_raO60mcY6tXXgWtMZXYy5w_tuiaX1Bb"
   },
 
   // Discount codes customers can use at checkout (percent off).
