@@ -44,6 +44,8 @@ Deno.serve(async (req) => {
       if (!r) return reply({ error: "Choose a valid role." }, 400);
       if (role === "owner" && myRole !== "owner") return reply({ error: "Only the owner can add another owner." }, 403);
 
+      // Sign-ups are invite-only (see schema.sql); allow this email through.
+      await admin.from("pending_invites").upsert({ email });
       const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
         data: { name: body.name || "" }, redirectTo: body.redirectTo || undefined,
       });
@@ -57,6 +59,7 @@ Deno.serve(async (req) => {
         active: true, invited_at: new Date().toISOString(), invited_by: me.user.id,
       });
       if (e2) return reply({ error: e2.message }, 400);
+      await admin.from("pending_invites").delete().eq("email", email);
       await log("invited team member", email, { role, title: body.title || "" });
       return reply({ ok: true });
     }

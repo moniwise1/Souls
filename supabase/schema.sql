@@ -392,3 +392,29 @@ grant execute on function public.log_action(text, text, text, jsonb) to authenti
 grant execute on function public.request_access(text) to authenticated;
 grant execute on function public.touch_me() to authenticated;
 grant execute on function public.update_my_profile(text) to authenticated;
+
+-- -------------------------------------------------------- invite-only ------
+-- Once the store has an owner, new accounts can only be created through an
+-- invitation from the admin (the invite-staff function allow-lists the email
+-- in pending_invites first). This works even if "Allow new users to sign up"
+-- is left on in the Supabase dashboard.
+create table if not exists public.pending_invites (
+  email      text primary key,
+  created_at timestamptz not null default now()
+);
+alter table public.pending_invites enable row level security;  -- no policies: service role only
+
+create or replace function public.block_public_signups() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.invited_at is null
+     and not exists (select 1 from public.pending_invites where email = lower(new.email))
+     and exists (select 1 from public.staff where role = 'owner' and active) then
+    raise exception 'Sign-ups are closed. Ask the store owner for an invitation.';
+  end if;
+  return new;
+end $$;
+revoke execute on function public.block_public_signups() from public, anon, authenticated;
+drop trigger if exists invite_only on auth.users;
+create trigger invite_only before insert on auth.users
+  for each row execute function public.block_public_signups();
