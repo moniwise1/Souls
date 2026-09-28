@@ -7,31 +7,66 @@ document.addEventListener("sbz:ready", () => {
   $("#stat-styles").textContent = P.length + "+";
   $("#stat-cats").textContent = Object.keys(CATS).length;
 
-  // Hero: rotate through pairs of product photos
   const ph = (dir, c) => `assets/img/catalog/${dir}/${c}.webp`;
-  const pairs = [
-    [ph("brogues", "cognac"), ph("pumps", "red")],
-    [ph("men-chelsea", "black"), ph("totes", "cognac")],
-    [ph("men-loafers", "oxblood"), ph("slingbacks", "cream")],
-    [ph("monk-straps", "chocolate"), ph("handbags", "emerald")],
-    [ph("palm-slippers", "black"), ph("heeled-sandals", "gold")],
-    [ph("chukka", "sand"), ph("mini-bags", "blush")]
-  ];
-  let i = 0;
-  const a = $("#hero-a"), b = $("#hero-b");
-  a.classList.add("hero__float"); b.classList.add("hero__float");
-  function showPair() {
-    const [x, y] = pairs[i % pairs.length];
-    [a, b].forEach(el => { el.style.opacity = 0; el.style.transform = "translateY(12px)"; });
-    setTimeout(() => {
-      a.innerHTML = `<img src="${x}" alt="">`;
-      b.innerHTML = `<img src="${y}" alt="">`;
-      [a, b].forEach(el => { el.style.opacity = 1; el.style.transform = "none"; });
-    }, i === 0 ? 0 : 500);
-    i++;
+
+  // Hero: "Shop the look". Model photos with tappable dots on each item.
+  const LOOKS = window.LOOKS || [];
+  const art = $(".hero__art");
+  if (LOOKS.length && art) {
+    const { money, media, esc } = window.SBZ;
+    art.className = "looks";
+    art.removeAttribute("aria-hidden");
+    art.innerHTML = `
+      <div class="looks__stage">
+        ${LOOKS.map((l, i) => `<figure class="look${i === 0 ? " is-on" : ""}" data-look="${i}">
+          <img src="${l.img}" alt="${esc(l.title)}: ${esc(l.caption)}"${i ? ' loading="lazy"' : ""}>
+          ${l.spots.map((s, j) => `<button class="spot" style="left:${s.x}%;top:${s.y}%" data-spot="${j}" aria-label="Shop ${esc(s.label)}"><span>${esc(s.label)}</span></button>`).join("")}
+        </figure>`).join("")}
+        <aside class="look-panel" aria-live="polite"></aside>
+      </div>
+      <div class="looks__bar">
+        <div><strong id="look-title"></strong><span id="look-cap"></span></div>
+        <div class="looks__nav">
+          <button data-step="-1" aria-label="Previous look">‹</button>
+          ${LOOKS.map((_, i) => `<button class="looks__dot${i === 0 ? " is-on" : ""}" data-go="${i}" aria-label="Look ${i + 1}"></button>`).join("")}
+          <button data-step="1" aria-label="Next look">›</button>
+        </div>
+      </div>`;
+    let cur = 0, timer;
+    const panel = $(".look-panel", art);
+    const show = i => {
+      cur = (i + LOOKS.length) % LOOKS.length;
+      $$(".look", art).forEach((f, k) => f.classList.toggle("is-on", k === cur));
+      $$(".looks__dot", art).forEach((d, k) => d.classList.toggle("is-on", k === cur));
+      $("#look-title").textContent = LOOKS[cur].title;
+      $("#look-cap").textContent = LOOKS[cur].caption;
+      closePanel();
+    };
+    const auto = () => { clearInterval(timer); timer = setInterval(() => show(cur + 1), 6000); };
+    const openPanel = spots => {
+      clearInterval(timer);
+      panel.innerHTML = `<button class="look-panel__close" aria-label="Close">×</button>
+        <span class="eyebrow">Shop the look</span><h3>${esc(LOOKS[cur].title)}</h3>
+        ${spots.map(s => {
+          const items = P.filter(p => p.category === s.cat).slice(0, spots.length > 1 ? 2 : 4);
+          const cat = CATS[s.cat] || { label: s.label };
+          return `<div class="look-panel__group"><p>${esc(s.label)}</p>
+            ${items.map(p => { const c = ["cognac", "tan", "camel", "chocolate"].find(k => p.colours.includes(k)) || p.colours[0]; return `<a class="look-item" href="product.html?id=${p.id}&colour=${c}"><span class="look-item__img">${media(p, c)}</span><span><b>${esc(p.name)}</b><small>${money(p.price)} · ${p.colours.length} colour${p.colours.length === 1 ? "" : "s"}</small></span></a>`; }).join("")}
+            <a class="link" href="shop.html?cat=${s.cat}">All ${esc(cat.label)} ${ICON.arrow}</a></div>`;
+        }).join("")}`;
+      panel.classList.add("is-open");
+      $(".look-panel__close", panel).onclick = e => { e.stopPropagation(); closePanel(); auto(); };
+    };
+    function closePanel() { panel.classList.remove("is-open"); }
+    art.addEventListener("click", e => {
+      const spot = e.target.closest("[data-spot]");
+      if (spot) { e.stopPropagation(); return openPanel([LOOKS[cur].spots[Number(spot.dataset.spot)]]); }
+      if (e.target.closest("[data-step]")) return (show(cur + Number(e.target.closest("[data-step]").dataset.step)), auto());
+      if (e.target.closest("[data-go]")) return (show(Number(e.target.closest("[data-go]").dataset.go)), auto());
+      if (e.target.closest(".look") && !panel.classList.contains("is-open")) openPanel(LOOKS[cur].spots);
+    });
+    show(0); auto();
   }
-  showPair();
-  setInterval(showPair, 4500);
 
   // Department tiles
   const tiles = [

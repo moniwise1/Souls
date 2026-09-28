@@ -282,3 +282,19 @@ window.GALLERY = [
   { src: "assets/img/catalog/totes/cognac.webp",       shape: "square", art: "tote:cognac",     caption: "Everyday leather tote" },
   { src: "assets/img/catalog/knee-boots/cognac.webp",  shape: "tall",   art: "kneeboot:cognac", caption: "Knee-high riding boot" }
 ];
+
+/* ==========================================================================
+   Shop the look (homepage hero). Each look is a model photo with tappable
+   dots placed on the items (x, y = % across / down the photo). A dot opens
+   the products in its category.
+   ========================================================================== */
+window.LOOKS = [
+  { img: "assets/img/looks/look-1.webp", title: "The Lagos Executive", caption: "Top-handle bag & pointed pumps",
+    spots: [{ x: 37.5, y: 65, cat: "handbags", label: "Top-handle bag" }, { x: 44.5, y: 90.5, cat: "pumps", label: "Pointed pumps" }] },
+  { img: "assets/img/looks/look-2.webp", title: "Sharp on Sunday", caption: "Full brogue wingtips",
+    spots: [{ x: 61, y: 93.5, cat: "brogues", label: "Brogue wingtips" }] },
+  { img: "assets/img/looks/look-3.webp", title: "Weekend in Ikoyi", caption: "Leather tote & flat sandals",
+    spots: [{ x: 59, y: 40, cat: "totes", label: "Leather tote" }, { x: 60, y: 87, cat: "women-sandals", label: "Flat sandals" }] },
+  { img: "assets/img/looks/look-4.webp", title: "Friday Ease", caption: "Crossed-band palm slippers",
+    spots: [{ x: 33.5, y: 92.5, cat: "palm-slippers", label: "Palm slippers" }] }
+];
