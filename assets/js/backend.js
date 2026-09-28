@@ -122,6 +122,19 @@
     return data;
   }
 
+  // Calls a Supabase Edge Function (e.g. invite-staff) as the signed-in user.
+  async function callFunction(name, body) {
+    const sb = await client();
+    const { data, error } = await sb.functions.invoke(name, { body });
+    if (error) {
+      let msg = error.message;
+      try { const j = await error.context.json(); msg = j.error || msg; } catch (e) { /* keep message */ }
+      if (/Failed to send a request|not found/i.test(msg)) msg = "The invite service isn't set up yet. See ADMIN.md, step 6.";
+      throw new Error(msg);
+    }
+    return data;
+  }
+
   /* -------------------------------------------- storefront catalogue ---- */
   // Replaces the built-in catalogue with the one from the database (live) or
   // from the admin demo on this device. Mutates the globals in place so every
@@ -208,7 +221,7 @@
   }
 
   window.Backend = {
-    LIVE, PERMISSIONS, ROLES, can, toShop, fromStatic, client, q, uid,
+    LIVE, PERMISSIONS, ROLES, can, callFunction, toShop, fromStatic, client, q, uid,
     readDemo, writeDemo, seedDemo, demoDb, loadCatalogue, placeOrder, checkPromo,
     resetDemo() { try { localStorage.removeItem(DEMO_KEY); } catch (e) { /* ignore */ } }
   };

@@ -53,6 +53,10 @@ create table if not exists public.staff (
   last_seen  timestamptz
 );
 
+alter table public.staff add column if not exists title text default '';        -- job title, e.g. Shoemaker
+alter table public.staff add column if not exists invited_at timestamptz;
+alter table public.staff add column if not exists invited_by uuid;
+
 -- Helpers used by the security policies ----------------------------------
 create or replace function public.my_role() returns text
 language sql stable security definer set search_path = public as $$
@@ -80,6 +84,24 @@ begin
   values (auth.uid(), coalesce(auth.jwt()->>'email', ''), 'owner', true)
   on conflict (user_id) do update set role = 'owner', active = true;
 end $$;
+
+-- Lets the sign-in page offer first-time owner setup only while there is none.
+create or replace function public.store_has_owner() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.staff where role = 'owner' and active)
+$$;
+grant execute on function public.store_has_owner() to anon, authenticated;
+
+-- Team members can edit their own name and record when they were last active,
+-- without being able to change their own role or access.
+create or replace function public.update_my_profile(p_name text) returns void
+language sql security definer set search_path = public as $$
+  update public.staff set name = coalesce(p_name, name) where user_id = auth.uid()
+$$;
+create or replace function public.touch_me() returns void
+language sql security definer set search_path = public as $$
+  update public.staff set last_seen = now() where user_id = auth.uid()
+$$;
 
 -- Anyone signed in can ask for access; an admin then approves and picks a role.
 create or replace function public.request_access(display_name text) returns void

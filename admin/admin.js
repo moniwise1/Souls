@@ -110,8 +110,19 @@
   }
 
   /* =============================================================== auth === */
+  // Live: Supabase Auth (email + password, email invitations, password reset,
+  // optional two-step verification). Demo: a local preview with sample data.
   const session = { user: null, email: "", name: "", role: null, staff: null };
   const DEMO_SESSION = "sbz_admin_demo_role";
+  let authLink = null; // "invite" | "recovery" when the page was opened from an email link
+
+  // Read an email link (#access_token=…&type=invite) before the router sees it.
+  (function readAuthLink() {
+    const h = new URLSearchParams(location.hash.replace(/^#/, ""));
+    if (h.get("access_token") || h.get("error_description")) {
+      authLink = h.get("type") || (h.get("error_description") ? "error:" + h.get("error_description") : null);
+    }
+  })();
 
   async function restoreSession() {
     if (!LIVE) {
@@ -120,69 +131,78 @@
       return !!session.role;
     }
     const sb = await B.client();
-    const { data } = await sb.auth.getSession();
+    const { data } = await sb.auth.getSession();       // also consumes tokens from email links
+    if (authLink) history.replaceState(null, "", location.pathname + location.search);
     if (!data.session) return false;
-    return loadStaff(data.session.user);
+    session.user = data.session.user; session.email = data.session.user.email;
+    return true;
   }
 
   async function startDemo(roleKey) {
     const roles = await demo.list("roles");
     const role = roles.find(r => r.key === roleKey) || roles[0];
-    Object.assign(session, { user: { id: "demo" }, email: "zamani@soulsbyzamani.com", name: "Zamani (demo)", role });
+    Object.assign(session, { user: { id: "demo" }, email: "zamani@soulsbyzamani.com", name: "Zamani (preview)", role });
     sessionStorage.setItem(DEMO_SESSION, role.key);
   }
 
-  async function loadStaff(user) {
+  async function loadStaff() {
     const sb = await B.client();
-    session.user = user; session.email = user.email;
-    const staff = await B.q(sb.from("staff").select("*").eq("user_id", user.id).maybeSingle());
+    const staff = await B.q(sb.from("staff").select("*").eq("user_id", session.user.id).maybeSingle());
     session.staff = staff;
-    if (!staff || !staff.active || !staff.role) { session.role = null; return true; }
-    const role = await B.q(sb.from("roles").select("*").eq("key", staff.role).single());
-    session.role = role; session.name = staff.name || user.email;
-    sb.from("staff").update({ last_seen: new Date().toISOString() }).eq("user_id", user.id).then(() => {}, () => {});
-    return true;
+    if (!staff || !staff.active || !staff.role) { session.role = null; return; }
+    session.role = await B.q(sb.from("roles").select("*").eq("key", staff.role).single());
+    session.name = staff.name || session.email;
+    sb.rpc("touch_me").then(() => {}, () => {});
   }
 
   const can = p => B.can(session.role, p);
 
+  const authBox = (inner) => `
+    <div class="auth"><div class="auth__box">
+      <div class="auth__logo">${mark("#8b4a22", "#d7b56d")}<div><strong>SOULS</strong><span>by Zamani · Admin</span></div></div>
+      ${inner}
+    </div></div>`;
+  const note = msg => msg ? `<div class="notice ${msg.bad ? "notice--bad" : "notice--info"}">${esc(msg.text)}</div>` : "";
+
   function renderLogin(mode, msg) {
     mode = mode || "signin";
-    const app = $("#app");
     if (!LIVE) {
-      app.innerHTML = `
-        <div class="auth"><form class="auth__box" id="demo-form">
-          <div class="auth__logo">${mark("#8b4a22", "#d7b56d")}<div><strong>SOULS</strong><span>Admin</span></div></div>
-          <h2>Welcome to your admin</h2>
-          <div class="notice">Demo mode: no database is connected yet, so changes are saved only in this browser. See <b>ADMIN.md</b> to go live.</div>
-          <p class="small">Try the admin as any role to see what each team member can do:</p>
-          <div class="role-pick">${B.ROLES.map((r, i) => `<label><input type="radio" name="role" value="${r.key}"${i === 0 ? " checked" : ""}><span><b>${esc(r.label)}</b><small>${esc(r.description)}</small></span></label>`).join("")}</div>
-          <button class="btn btn--primary" type="submit">Enter admin</button>
-          <p class="auth__alt"><a href="../index.html">← Back to the shop</a></p>
-        </form></div>`;
-      $("#demo-form").addEventListener("submit", async e => {
-        e.preventDefault();
-        await startDemo(new FormData(e.target).get("role"));
-        await demo.log("signed in", "staff", session.email, { role: session.role.key });
-        boot();
-      });
+      $("#app").innerHTML = authBox(`
+        <h2>Sign in</h2>
+        <div class="notice">Team sign-in isn't switched on yet. It starts working once the store's secure database is connected (see <b>ADMIN.md</b>, about 15 minutes).</div>
+        <form id="auth-form">
+          <div class="field"><label>Email</label><input class="input" type="email" disabled placeholder="you@example.com"></div>
+          <div class="field"><label>Password</label><input class="input" type="password" disabled placeholder="••••••••"></div>
+          <button class="btn btn--primary" type="button" disabled>Sign in</button>
+        </form>
+        <p class="auth__alt"><button type="button" id="preview">Preview the admin with sample data</button><br><a href="../index.html">← Back to the shop</a></p>`);
+      $("#preview").onclick = async () => { await startDemo("owner"); await demo.log("opened preview", "staff", session.email, {}); boot(); };
       return;
     }
-    const titles = { signin: "Sign in", signup: "Create your account", reset: "Reset your password" };
-    app.innerHTML = `
-      <div class="auth"><form class="auth__box" id="auth-form">
-        <div class="auth__logo">${mark("#8b4a22", "#d7b56d")}<div><strong>SOULS</strong><span>Admin</span></div></div>
-        <h2>${titles[mode]}</h2>
-        ${msg ? `<div class="notice ${msg.bad ? "notice--bad" : "notice--info"}">${esc(msg.text)}</div>` : ""}
-        ${mode === "signup" ? `<div class="field"><label>Your name</label><input class="input" name="name" required></div>` : ""}
-        <div class="field"><label>Email</label><input class="input" name="email" type="email" autocomplete="username" required></div>
-        ${mode !== "reset" ? `<div class="field"><label>Password</label><input class="input" name="password" type="password" minlength="8" autocomplete="${mode === "signup" ? "new-password" : "current-password"}" required></div>` : ""}
-        <button class="btn btn--primary" type="submit">${titles[mode]}</button>
-        <p class="auth__alt">
-          ${mode !== "signin" ? `<button type="button" data-mode="signin">Back to sign in</button>` : `<button type="button" data-mode="signup">New staff member? Create an account</button><br><button type="button" data-mode="reset">Forgot password?</button>`}
-        </p>
-      </form></div>`;
+    const views = {
+      signin: `<h2>Sign in</h2>${note(msg)}
+        <form id="auth-form">
+          <div class="field"><label>Email</label><input class="input" name="email" type="email" autocomplete="username" required autofocus></div>
+          <div class="field"><label>Password</label><input class="input" name="password" type="password" autocomplete="current-password" required></div>
+          <button class="btn btn--primary" type="submit">Sign in</button>
+        </form>
+        <p class="auth__alt"><button type="button" data-mode="reset">Forgot your password?</button></p>
+        <p class="auth__alt" id="setup-link" hidden><button type="button" data-mode="setup">First time? Set up the owner account</button></p>`,
+      reset: `<h2>Reset your password</h2>${note(msg)}<p>Enter your email and we'll send you a link to choose a new password.</p>
+        <form id="auth-form"><div class="field"><label>Email</label><input class="input" name="email" type="email" required autofocus></div>
+        <button class="btn btn--primary" type="submit">Send reset link</button></form>
+        <p class="auth__alt"><button type="button" data-mode="signin">Back to sign in</button></p>`,
+      setup: `<h2>Set up the owner account</h2>${note(msg)}<p>This is a one-time step for the store owner. After this, new team members join by invitation only.</p>
+        <form id="auth-form">
+          <div class="field"><label>Your name</label><input class="input" name="name" required></div>
+          <div class="field"><label>Email</label><input class="input" name="email" type="email" autocomplete="username" required></div>
+          <div class="field"><label>Password (at least 10 characters)</label><input class="input" name="password" type="password" minlength="10" autocomplete="new-password" required></div>
+          <button class="btn btn--primary" type="submit">Create owner account</button></form>
+        <p class="auth__alt"><button type="button" data-mode="signin">Back to sign in</button></p>`
+    };
+    $("#app").innerHTML = authBox(views[mode]);
     $$("[data-mode]").forEach(b => b.onclick = () => renderLogin(b.dataset.mode));
+    if (mode === "signin") B.client().then(sb => sb.rpc("store_has_owner")).then(r => { if (r && r.data === false) $("#setup-link").hidden = false; }).catch(() => {});
     $("#auth-form").addEventListener("submit", async e => {
       e.preventDefault();
       const f = Object.fromEntries(new FormData(e.target).entries());
@@ -190,51 +210,88 @@
       try {
         const sb = await B.client();
         if (mode === "signin") {
-          const { data, error } = await sb.auth.signInWithPassword({ email: f.email, password: f.password });
+          const { data, error } = await sb.auth.signInWithPassword({ email: f.email.trim(), password: f.password });
+          if (error) throw new Error(error.message === "Invalid login credentials" ? "That email and password don't match." : error.message);
+          session.user = data.user; session.email = data.user.email;
+          return afterSignIn();
+        }
+        if (mode === "reset") {
+          const { error } = await sb.auth.resetPasswordForEmail(f.email.trim(), { redirectTo: location.href.split("#")[0] });
           if (error) throw error;
-          await loadStaff(data.user); boot();
-        } else if (mode === "signup") {
-          const { data, error } = await sb.auth.signUp({ email: f.email, password: f.password, options: { data: { name: f.name }, emailRedirectTo: location.href } });
+          return renderLogin("signin", { text: "If that email belongs to a team member, a reset link is on its way." });
+        }
+        if (mode === "setup") {
+          const { data, error } = await sb.auth.signUp({ email: f.email.trim(), password: f.password, options: { data: { name: f.name }, emailRedirectTo: location.href.split("#")[0] } });
           if (error) throw error;
-          if (data.session) { await sb.rpc("request_access", { display_name: f.name }); await loadStaff(data.user); boot(); }
-          else renderLogin("signin", { text: "Check your email to confirm your account, then sign in." });
-        } else {
-          const { error } = await sb.auth.resetPasswordForEmail(f.email, { redirectTo: location.href });
-          if (error) throw error;
-          renderLogin("signin", { text: "If that email has an account, a reset link is on its way." });
+          if (!data.session) return renderLogin("signin", { text: "Check your email to confirm your address, then sign in here." });
+          session.user = data.user; session.email = data.user.email;
+          await B.q(sb.rpc("claim_owner"));
+          await B.q(sb.rpc("update_my_profile", { p_name: f.name }));
+          return afterSignIn();
         }
       } catch (err) { renderLogin(mode, { text: err.message, bad: true }); }
     });
   }
 
-  function renderPending() {
-    $("#app").innerHTML = `
-      <div class="auth"><div class="auth__box">
-        <div class="auth__logo">${mark("#8b4a22", "#d7b56d")}<div><strong>SOULS</strong><span>Admin</span></div></div>
-        <h2>Almost there</h2>
-        <p>You're signed in as <b>${esc(session.email)}</b>, but you don't have admin access yet.</p>
-        <div class="notice notice--info">Ask the store owner to approve you under <b>Staff &amp; roles</b>. If you're setting up the store for the first time, claim ownership below.</div>
-        <button class="btn btn--primary" id="req">Request access</button>
-        <p></p>
-        <button class="btn" id="claim">I'm the owner: claim this store</button>
-        <p class="auth__alt"><button type="button" id="out">Sign out</button></p>
-      </div></div>`;
-    $("#req").onclick = async () => {
-      try { const sb = await B.client(); await B.q(sb.rpc("request_access", { display_name: "" })); toast("Request sent. The owner will approve you."); }
-      catch (e) { toast(e.message, true); }
+  // After a password is accepted: ask for the two-step code if the user has one.
+  async function afterSignIn() {
+    const sb = await B.client();
+    const { data } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (data && data.nextLevel === "aal2" && data.currentLevel !== "aal2") return renderTwoStep();
+    await loadStaff();
+    boot();
+  }
+
+  async function renderTwoStep(msg) {
+    const sb = await B.client();
+    const { data } = await sb.auth.mfa.listFactors();
+    const factor = (data && data.totp || []).find(f => f.status === "verified");
+    $("#app").innerHTML = authBox(`<h2>Two-step verification</h2>${note(msg)}<p>Open your authenticator app and enter the 6-digit code for Souls by Zamani.</p>
+      <form id="auth-form"><div class="field"><label>Code</label><input class="input" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus></div>
+      <button class="btn btn--primary" type="submit">Verify</button></form>
+      <p class="auth__alt"><button type="button" id="out">Use a different account</button></p>`);
+    $("#out").onclick = signOut;
+    $("#auth-form").onsubmit = async e => {
+      e.preventDefault();
+      const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: factor.id, code: new FormData(e.target).get("code") });
+      if (error) return renderTwoStep({ text: "That code didn't work. Try the newest one.", bad: true });
+      await loadStaff(); boot();
     };
-    $("#claim").onclick = async () => {
-      try { const sb = await B.client(); await B.q(sb.rpc("claim_owner")); await loadStaff(session.user); boot(); toast("You're now the owner of this store."); }
-      catch (e) { toast(e.message, true); }
+  }
+
+  // Opened from an invitation or reset email: choose a password.
+  function renderSetPassword(kind) {
+    $("#app").innerHTML = authBox(`<h2>${kind === "invite" ? "Welcome to the team" : "Choose a new password"}</h2>
+      ${kind === "invite" ? `<p>You've been invited to the Souls by Zamani admin as <b>${esc(session.email)}</b>. Choose a password to finish setting up your account.</p>` : ""}
+      <form id="auth-form">
+        <div class="field"><label>New password (at least 10 characters)</label><input class="input" name="p1" type="password" minlength="10" autocomplete="new-password" required autofocus></div>
+        <div class="field"><label>Repeat password</label><input class="input" name="p2" type="password" minlength="10" autocomplete="new-password" required></div>
+        <button class="btn btn--primary" type="submit">Save password</button></form>`);
+    $("#auth-form").onsubmit = async e => {
+      e.preventDefault();
+      const f = Object.fromEntries(new FormData(e.target).entries());
+      if (f.p1 !== f.p2) return toast("The passwords don't match.", true);
+      const sb = await B.client();
+      const { error } = await sb.auth.updateUser({ password: f.p1 });
+      if (error) return toast(error.message, true);
+      authLink = null; toast("Password saved.");
+      afterSignIn();
     };
+  }
+
+  function renderNoAccess() {
+    $("#app").innerHTML = authBox(`<h2>No access yet</h2>
+      <p>You're signed in as <b>${esc(session.email)}</b>, but this account doesn't have access to the admin, or it has been switched off.</p>
+      <div class="notice notice--info">Ask the store owner to invite you from <b>Team &amp; roles</b>.</div>
+      <p class="auth__alt"><button type="button" id="out">Sign out</button></p>`);
     $("#out").onclick = signOut;
   }
 
   async function signOut() {
     if (LIVE) { const sb = await B.client(); await sb.auth.signOut(); }
     sessionStorage.removeItem(DEMO_SESSION);
-    Object.assign(session, { user: null, role: null, staff: null });
-    location.hash = "";
+    Object.assign(session, { user: null, role: null, staff: null, email: "", name: "" });
+    history.replaceState(null, "", location.pathname);
     renderLogin();
   }
 
@@ -247,13 +304,15 @@
     { key: "discounts", label: "Discount codes", perm: "promos.manage", group: "Sales" },
     { key: "products", label: "Products", perm: "products.view", group: "Catalogue" },
     { key: "categories", label: "Categories", perm: "categories.manage", group: "Catalogue" },
-    { key: "staff", label: "Staff & roles", perm: "staff.manage", group: "Admin" },
+    { key: "staff", label: "Team & roles", perm: "staff.manage", group: "Admin" },
     { key: "settings", label: "Store settings", perm: "settings.manage", group: "Admin" },
-    { key: "activity", label: "Activity log", perm: "audit.view", group: "Admin" }
+    { key: "activity", label: "Activity log", perm: "audit.view", group: "Admin" },
+    { key: "account", label: "My account", perm: null, group: "Admin", hidden: true }
   ];
+  const allowedScreen = s => !s.perm || can(s.perm);
 
   function shell() {
-    const allowed = SCREENS.filter(s => can(s.perm));
+    const allowed = SCREENS.filter(s => !s.hidden && allowedScreen(s));
     let group = "";
     $("#app").innerHTML = `
       <div class="shell">
@@ -266,12 +325,13 @@
           </nav>
           <div class="side__foot">
             <strong>${esc(session.name || session.email)}</strong>
-            <span class="role">${esc(session.role.label)}</span>
+            <span class="role">${esc(session.role.label)}${session.staff && session.staff.title ? " · " + esc(session.staff.title) : ""}</span>
+            <a class="btn btn--sm" href="#/account" style="margin-bottom:6px">My account</a>
             <button class="btn btn--sm" id="signout">Sign out</button>
           </div>
         </aside>
         <div class="main">
-          ${LIVE ? "" : `<div class="demo-bar"><b>Demo mode</b> Data is saved in this browser only. <button id="switch-role">Switch role</button> <button id="reset-demo">Reset demo data</button></div>`}
+          ${LIVE ? "" : `<div class="demo-bar"><b>Preview with sample data</b> Changes stay in this browser. Team sign-in starts when the database is connected (ADMIN.md). <label>Preview as <select id="switch-role">${B.ROLES.map(r => `<option value="${r.key}"${r.key === session.role.key ? " selected" : ""}>${esc(r.label)}</option>`).join("")}</select></label> <button id="reset-demo">Reset sample data</button> <button id="exit-demo">Exit preview</button></div>`}
           <header class="top">
             <button class="btn btn--ghost top__burger" id="burger" aria-label="Menu">${icon("menu")}</button>
             <h1 id="title"></h1>
@@ -283,7 +343,8 @@
     $("#signout").onclick = signOut;
     $("#burger").onclick = () => $("#side").classList.toggle("is-open");
     if (!LIVE) {
-      $("#switch-role").onclick = () => { sessionStorage.removeItem(DEMO_SESSION); renderLogin(); };
+      $("#switch-role").onchange = async e => { await startDemo(e.target.value); boot(); };
+      $("#exit-demo").onclick = signOut;
       $("#reset-demo").onclick = () => { if (confirm("Reset all demo data back to the original catalogue? This removes demo orders and changes.")) { B.resetDemo(); B.seedDemo(); route(); toast("Demo data reset."); } };
     }
   }
@@ -297,7 +358,7 @@
 
   async function route() {
     const key = (location.hash.replace(/^#\//, "").split("?")[0]) || "dashboard";
-    const screen = SCREENS.find(s => s.key === key && can(s.perm)) || SCREENS.find(s => can(s.perm));
+    const screen = SCREENS.find(s => s.key === key && allowedScreen(s)) || SCREENS.find(s => !s.hidden && allowedScreen(s));
     if (!screen) { $("#content").innerHTML = `<div class="empty">Your role has no screens yet.</div>`; return; }
     $$("[data-nav]").forEach(a => a.classList.toggle("is-on", a.dataset.nav === screen.key));
     $("#content").innerHTML = `<div class="empty">Loading…</div>`;
@@ -842,42 +903,100 @@
     $$("[data-code]").forEach(r => r.onclick = () => form(codes.find(c => c.code === r.dataset.code)));
   };
 
-  /* -------------------------------------------------- staff & roles ---- */
+  /* ------------------------------------------------- team & roles ---- */
+  const JOB_TITLES = ["Shoemaker", "Workshop lead", "Store manager", "Sales associate", "Customer care", "Accountant", "Photographer", "Social media", "Delivery coordinator"];
+  const staffStatus = s => !s.active ? pill("suspended", "bad") : s.last_seen ? pill("active", "ok") : pill("invited", "warn");
+
   VIEWS.staff = async () => {
-    setPage("Staff & roles", `<button class="btn" id="addrole">${icon("plus")} New role</button>${LIVE ? "" : `<button class="btn btn--primary" id="addstaff">${icon("plus")} Add staff</button>`}`);
+    setPage("Team & roles", `<button class="btn" id="addrole">${icon("plus")} New role</button><button class="btn btn--primary" id="invite">${icon("plus")} Invite team member</button>`);
     const [staff, roles] = await Promise.all([API.list("staff"), API.list("roles")]);
     const isOwner = session.role.key === "owner";
+    const roleLabel = k => (roles.find(r => r.key === k) || { label: k || "—" }).label;
     const roleOpts = sel => roles.filter(r => r.key !== "owner" || isOwner).map(r => `<option value="${r.key}"${r.key === sel ? " selected" : ""}>${esc(r.label)}</option>`).join("");
-    const pending = staff.filter(s => !s.active);
+    const me = s => (LIVE ? s.user_id === session.user.id : s.email === session.email);
     $("#content").innerHTML = `
-      ${LIVE ? `<div class="notice notice--info">To add a team member: send them the admin link (<b>${esc(location.href.split("#")[0])}</b>). They create an account, then appear under "Waiting for approval" below for you to approve and give a role.</div>` : ""}
-      ${pending.length ? `<div class="card" style="margin-bottom:16px"><div class="card__head"><h3>Waiting for approval</h3></div><div class="table-wrap"><table class="t"><tbody>
-        ${pending.map(s => `<tr class="no-hover" data-uid="${esc(s.user_id)}"><td><b>${esc(s.name || s.email)}</b><div class="small muted">${esc(s.email)}</div></td><td><select class="select" data-role>${roleOpts(s.role || "support")}</select></td><td class="right"><button class="btn btn--primary btn--sm" data-approve>Approve</button> <button class="btn btn--danger btn--sm" data-remove>Decline</button></td></tr>`).join("")}
-      </tbody></table></div></div>` : ""}
-      <div class="card" style="margin-bottom:16px"><div class="card__head"><h3>Team</h3></div><div class="table-wrap"><table class="t"><thead><tr><th>Name</th><th>Role</th><th class="hide-sm">Last active</th><th></th></tr></thead><tbody>
-        ${staff.filter(s => s.active).map(s => { const locked = s.role === "owner" && !isOwner; const self = s.user_id === (session.user || {}).id || s.email === session.email; return `<tr class="no-hover" data-uid="${esc(s.user_id)}"><td><b>${esc(s.name || s.email)}</b>${self ? " " + pill("you", "info") : ""}<div class="small muted">${esc(s.email)}</div></td><td>${locked || self ? pill((roles.find(r => r.key === s.role) || { label: s.role }).label, "ok") : `<select class="select" data-role>${roleOpts(s.role)}</select>`}</td><td class="hide-sm">${s.last_seen ? dateTime(s.last_seen) : "—"}</td><td class="right">${locked || self || s.role === "owner" ? "" : `<button class="btn btn--sm" data-save>Save</button> <button class="btn btn--danger btn--sm" data-remove>Remove</button>`}</td></tr>`; }).join("") || `<tr class="no-hover"><td colspan="4" class="muted">${LIVE ? "No staff yet." : "In demo mode you're signed in as the owner. Add staff to try it out."}</td></tr>`}
-      </tbody></table></div></div>
-      <div class="card"><div class="card__head"><h3>Roles &amp; permissions</h3><span class="muted small">Tick what each role can do. Owner always has full access.</span></div>
+      <div class="card" style="margin-bottom:16px"><div class="card__head"><h3>Team members</h3><span class="muted small">${staff.filter(s => s.active).length} active</span></div>
+        <div class="table-wrap"><table class="t"><thead><tr><th>Name</th><th class="hide-sm">Job title</th><th>Role</th><th>Status</th><th class="hide-sm">Last active</th><th></th></tr></thead><tbody>
+        ${staff.map(s => `<tr data-uid="${esc(s.user_id)}"><td><b>${esc(s.name || s.email)}</b>${me(s) ? " " + pill("you", "info") : ""}<div class="small muted">${esc(s.email)}</div></td><td class="hide-sm">${esc(s.title || "")}</td><td>${esc(roleLabel(s.role))}</td><td>${staffStatus(s)}</td><td class="hide-sm">${s.last_seen ? dateTime(s.last_seen) : "—"}</td><td class="right">${s.role === "owner" || me(s) ? "" : `<button class="btn btn--sm">Manage</button>`}</td></tr>`).join("") || `<tr class="no-hover"><td colspan="6" class="muted">No team members yet. Invite your first one.</td></tr>`}
+        </tbody></table></div></div>
+      <div class="card"><div class="card__head"><h3>Roles &amp; permissions</h3><span class="muted small">Tick what each role can do. The owner always has full access.</span></div>
         <div class="table-wrap"><table class="t matrix"><thead><tr><th>Permission</th>${roles.map(r => `<th title="${esc(r.description)}">${esc(r.label)}${r.locked ? "" : ` <button class="btn btn--ghost btn--sm" data-delrole="${esc(r.key)}" title="Delete role">✕</button>`}</th>`).join("")}</tr></thead><tbody>
         ${B.PERMISSIONS.map(([k, label]) => `<tr class="no-hover"><td>${esc(label)}</td>${roles.map(r => `<td><input type="checkbox" data-perm="${k}" data-rk="${esc(r.key)}"${B.can(r, k) ? " checked" : ""}${r.key === "owner" ? " disabled" : ""}></td>`).join("")}</tr>`).join("")}
         </tbody></table></div>
         <div class="card__body" style="text-align:right"><button class="btn btn--primary" id="saveperm">Save permissions</button></div></div>`;
 
+    // Invite ---------------------------------------------------------------
+    $("#invite").onclick = () => {
+      const d = drawer("Invite team member", `
+        <form class="section" id="inv"><div class="fields">
+          <div class="field"><label>Full name *</label><input class="input" name="name" required></div>
+          <div class="field"><label>Email *</label><input class="input" name="email" type="email" required></div>
+          <div class="field"><label>Job title</label><input class="input" name="title" list="titles" placeholder="e.g. Shoemaker"><datalist id="titles">${JOB_TITLES.map(t => `<option value="${t}">`).join("")}</datalist></div>
+          <div class="field"><label>Role (what they can do) *</label><select class="select" name="role" id="inv-role">${roleOpts("support").replace(/<option value="owner"[^>]*>[^<]*<\/option>/, "")}</select></div>
+          <div class="field field--full"><div class="notice notice--info" id="inv-desc"></div></div>
+        </div>
+        <p class="hint">They'll receive an email invitation to join the Souls by Zamani admin. The link lets them choose their own password. They can only see and do what their role allows, and you can change this at any time.</p></form>`,
+        `<span class="spacer"></span><button class="btn" data-close>Cancel</button><button class="btn btn--primary" id="send">Send invitation</button>`);
+      $("#drawer .drawer__foot [data-close]").onclick = closeDrawer;
+      const desc = () => { const r = roles.find(x => x.key === $("#inv-role", d).value); $("#inv-desc", d).textContent = r ? `${r.label}: ${r.description || ""}` : ""; };
+      $("#inv-role", d).onchange = desc; desc();
+      $("#send", d).onclick = async () => {
+        const f = formData($("#inv", d));
+        if (!f.name.trim() || !/^\S+@\S+\.\S+$/.test(f.email)) return toast("Enter their name and a valid email.", true);
+        if (staff.some(s => s.email.toLowerCase() === f.email.trim().toLowerCase())) return toast("That person is already on the team.", true);
+        const btn = $("#send", d); btn.disabled = true; btn.textContent = "Sending…";
+        try {
+          if (LIVE) await B.callFunction("invite-staff", { action: "invite", email: f.email.trim().toLowerCase(), name: f.name.trim(), title: f.title.trim(), role: f.role, redirectTo: location.href.split("#")[0] });
+          else await API.save("staff", { user_id: B.uid(), email: f.email.trim().toLowerCase(), name: f.name.trim(), title: f.title.trim(), role: f.role, active: true, invited_at: new Date().toISOString(), last_seen: null });
+          await API.log("invited team member", "staff", f.email, { role: f.role, title: f.title });
+          toast(LIVE ? `Invitation sent to ${f.email}.` : "Added. (In the live admin they receive an email invitation.)");
+          closeDrawer(); route();
+        } catch (e) { btn.disabled = false; btn.textContent = "Send invitation"; toast(e.message, true); }
+      };
+    };
+
+    // Manage a member ------------------------------------------------------
     $$("[data-uid]").forEach(row => {
       const s = staff.find(x => x.user_id === row.dataset.uid);
-      const sel = $("[data-role]", row);
-      const save = async activate => {
-        await API.save("staff", { ...s, role: sel ? sel.value : s.role, active: activate || s.active });
-        await API.log(activate ? "approved staff" : "changed role", "staff", s.email, { role: sel && sel.value });
-        toast(activate ? "Access approved." : "Role updated."); route();
-      };
-      const a = $("[data-approve]", row); if (a) a.onclick = () => save(true);
-      const sv = $("[data-save]", row); if (sv) sv.onclick = () => save(false);
-      const rm = $("[data-remove]", row); if (rm) rm.onclick = async () => {
-        if (!confirm(`Remove ${s.email}'s access to the admin?`)) return;
-        await API.remove("staff", s.user_id); await API.log("removed staff", "staff", s.email, {}); toast("Access removed."); route();
+      if (s.role === "owner" || me(s)) { row.classList.add("no-hover"); return; }
+      row.onclick = () => {
+        const d = drawer(esc(s.name || s.email), `
+          <div class="section"><dl class="kv"><dt>Email</dt><dd>${esc(s.email)}</dd><dt>Status</dt><dd>${staffStatus(s)}</dd><dt>Invited</dt><dd>${s.invited_at ? dateTime(s.invited_at) : "—"}</dd><dt>Last active</dt><dd>${s.last_seen ? dateTime(s.last_seen) : "Not signed in yet"}</dd></dl></div>
+          <form class="section" id="mf"><div class="fields">
+            <div class="field"><label>Name</label><input class="input" name="name" value="${esc(s.name || "")}"></div>
+            <div class="field"><label>Job title</label><input class="input" name="title" value="${esc(s.title || "")}" list="titles2"><datalist id="titles2">${JOB_TITLES.map(t => `<option value="${t}">`).join("")}</datalist></div>
+            <div class="field field--full"><label>Role</label><select class="select" name="role">${roleOpts(s.role)}</select></div>
+          </div></form>`,
+          `<button class="btn btn--danger" id="rm">Remove</button><button class="btn" id="sus">${s.active ? "Suspend access" : "Restore access"}</button>${LIVE && !s.last_seen ? `<button class="btn" id="resend">Resend invitation</button>` : ""}<span class="spacer"></span><button class="btn btn--primary" id="save">Save</button>`);
+        $("#save", d).onclick = async () => {
+          const f = formData($("#mf", d));
+          await API.save("staff", { ...s, name: f.name, title: f.title, role: f.role });
+          await API.log("updated team member", "staff", s.email, { role: f.role, title: f.title });
+          toast("Saved. Their access changes straight away."); closeDrawer(); route();
+        };
+        $("#sus", d).onclick = async () => {
+          await API.save("staff", { ...s, active: !s.active });
+          await API.log(s.active ? "suspended team member" : "restored team member", "staff", s.email, {});
+          toast(s.active ? "Access suspended." : "Access restored."); closeDrawer(); route();
+        };
+        const rs = $("#resend", d);
+        if (rs) rs.onclick = async () => {
+          try { await B.callFunction("invite-staff", { action: "resend", email: s.email, redirectTo: location.href.split("#")[0] }); toast("Invitation sent again."); }
+          catch (e) { toast(e.message, true); }
+        };
+        $("#rm", d).onclick = async () => {
+          if (!confirm(`Remove ${s.name || s.email} from the team? Their login is deleted.`)) return;
+          try {
+            if (LIVE) await B.callFunction("invite-staff", { action: "remove", user_id: s.user_id });
+            else await API.remove("staff", s.user_id);
+            await API.log("removed team member", "staff", s.email, {});
+            toast("Removed."); closeDrawer(); route();
+          } catch (e) { toast(e.message, true); }
+        };
       };
     });
+
+    // Roles ----------------------------------------------------------------
     $("#saveperm").onclick = async () => {
       for (const r of roles.filter(r => r.key !== "owner")) {
         const perms = $$(`[data-rk="${r.key}"]:checked`).map(i => i.dataset.perm);
@@ -888,7 +1007,7 @@
     };
     $$("[data-delrole]").forEach(b => b.onclick = async () => {
       const key = b.dataset.delrole;
-      if (staff.some(s => s.role === key)) return toast("Move staff off this role first.", true);
+      if (staff.some(s => s.role === key)) return toast("Move team members off this role first.", true);
       if (!confirm("Delete this role?")) return;
       await API.remove("roles", key); await API.log("deleted role", "roles", key, {}); route();
     });
@@ -901,13 +1020,64 @@
         await API.log("created role", "roles", slug(f.label), {}); toast("Role created."); closeDrawer(); route();
       };
     };
-    const as = $("#addstaff");
-    if (as) as.onclick = () => {
-      const d = drawer("Add staff member", `<form class="section" id="sf"><div class="fields"><div class="field"><label>Name</label><input class="input" name="name" required></div><div class="field"><label>Email</label><input class="input" name="email" type="email" required></div><div class="field field--full"><label>Role</label><select class="select" name="role">${roleOpts("support")}</select></div></div><p class="hint">In the live admin, staff create their own account and you approve them here.</p></form>`, `<span class="spacer"></span><button class="btn btn--primary" id="save">Add</button>`);
-      $("#save", d).onclick = async () => {
-        const f = formData($("#sf", d)); if (!f.email) return toast("Enter an email.", true);
-        await API.save("staff", { user_id: B.uid(), email: f.email, name: f.name, role: f.role, active: true });
-        await API.log("added staff", "staff", f.email, { role: f.role }); toast("Staff member added."); closeDrawer(); route();
+  };
+
+  /* ---------------------------------------------------- my account ---- */
+  VIEWS.account = async () => {
+    setPage("My account");
+    if (!LIVE) {
+      $("#content").innerHTML = `<div class="notice">Password, profile and two-step verification settings are available once team sign-in is switched on (see ADMIN.md).</div>`;
+      return;
+    }
+    const sb = await B.client();
+    const { data: fx } = await sb.auth.mfa.listFactors();
+    const factor = (fx && fx.totp || []).find(f => f.status === "verified");
+    $("#content").innerHTML = `
+      <form class="section" id="pf"><h3>Profile</h3><div class="fields">
+        <div class="field"><label>Name</label><input class="input" name="name" value="${esc(session.name || "")}"></div>
+        <div class="field"><label>Email</label><input class="input" value="${esc(session.email)}" disabled></div>
+        <div class="field"><label>Role</label><input class="input" value="${esc(session.role.label)}" disabled></div>
+        <div class="field"><label>Job title</label><input class="input" value="${esc((session.staff || {}).title || "")}" disabled></div>
+      </div><p><button class="btn btn--primary" type="submit">Save profile</button></p></form>
+      <form class="section" id="pw"><h3>Change password</h3><div class="fields">
+        <div class="field"><label>New password (at least 10 characters)</label><input class="input" name="p1" type="password" minlength="10" autocomplete="new-password" required></div>
+        <div class="field"><label>Repeat new password</label><input class="input" name="p2" type="password" minlength="10" autocomplete="new-password" required></div>
+      </div><p><button class="btn btn--primary" type="submit">Change password</button></p></form>
+      <div class="section" id="mfa"><h3>Two-step verification</h3>
+        ${factor ? `<p>${pill("on", "ok")} Your account asks for a code from your authenticator app when you sign in.</p><button class="btn btn--danger" id="mfa-off">Turn off</button>`
+                 : `<p class="muted">Add a second step to your sign-in using an authenticator app (Google Authenticator, Microsoft Authenticator or similar). Strongly recommended for the owner and administrators.</p><button class="btn btn--gold" id="mfa-on">Turn on two-step verification</button>`}
+        <div id="mfa-setup"></div></div>`;
+    $("#pf").onsubmit = async e => {
+      e.preventDefault(); const name = new FormData(e.target).get("name");
+      try { await B.q(sb.rpc("update_my_profile", { p_name: name })); session.name = name; toast("Profile saved."); } catch (err) { toast(err.message, true); }
+    };
+    $("#pw").onsubmit = async e => {
+      e.preventDefault(); const f = formData(e.target);
+      if (f.p1 !== f.p2) return toast("The passwords don't match.", true);
+      const { error } = await sb.auth.updateUser({ password: f.p1 });
+      if (error) return toast(error.message, true);
+      e.target.reset(); await API.log("changed password", "staff", session.email, {}); toast("Password changed.");
+    };
+    const off = $("#mfa-off");
+    if (off) off.onclick = async () => {
+      if (!confirm("Turn off two-step verification?")) return;
+      const { error } = await sb.auth.mfa.unenroll({ factorId: factor.id });
+      if (error) return toast(error.message, true);
+      toast("Two-step verification turned off."); route();
+    };
+    const on = $("#mfa-on");
+    if (on) on.onclick = async () => {
+      const { data, error } = await sb.auth.mfa.enroll({ factorType: "totp", friendlyName: "Souls admin " + Date.now().toString(36) });
+      if (error) return toast(error.message, true);
+      $("#mfa-setup").innerHTML = `<div class="fields" style="margin-top:14px">
+        <div class="field"><span>1. Scan this with your authenticator app</span><img src="${data.totp.qr_code}" alt="QR code" style="width:180px;height:180px;background:#fff;border:1px solid var(--line);border-radius:8px"><span class="hint">Can't scan? Enter this key: <b>${esc(data.totp.secret)}</b></span></div>
+        <form class="field" id="mfa-verify"><span>2. Enter the 6-digit code it shows</span><input class="input" name="code" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required><button class="btn btn--primary" type="submit" style="margin-top:8px">Verify and turn on</button></form></div>`;
+      $("#mfa-verify").onsubmit = async e => {
+        e.preventDefault();
+        const { error: err } = await sb.auth.mfa.challengeAndVerify({ factorId: data.id, code: new FormData(e.target).get("code") });
+        if (err) return toast("That code didn't work. Try the newest one.", true);
+        await API.log("turned on two-step verification", "staff", session.email, {});
+        toast("Two-step verification is on."); route();
       };
     };
   };
@@ -963,15 +1133,24 @@
 
   /* ================================================================ boot === */
   function boot() {
-    if (!session.role) return LIVE && session.user ? renderPending() : renderLogin();
+    if (!session.role) {
+      if (LIVE && session.user) return renderNoAccess();
+      const err = authLink && authLink.startsWith("error:") ? { text: authLink.slice(6).replace(/\+/g, " "), bad: true } : null;
+      return renderLogin("signin", err);
+    }
     shell();
     route();
   }
   window.addEventListener("hashchange", () => { if (session.role) route(); });
 
   (async () => {
-    try { await restoreSession(); }
-    catch (e) { console.error(e); return renderLogin("signin", { text: e.message, bad: true }); }
+    try {
+      await restoreSession();
+      if (LIVE && session.user) {
+        if (authLink === "invite" || authLink === "recovery") { await loadStaff().catch(() => {}); return renderSetPassword(authLink); }
+        return afterSignIn();
+      }
+    } catch (e) { console.error(e); return renderLogin("signin", { text: e.message, bad: true }); }
     boot();
   })();
 })();
