@@ -674,3 +674,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: .9rem; min-widt
 .cascade__item { background: linear-gradient(160deg, var(--paper), var(--stone)); }
 .cascade__item img { object-fit: contain; padding: 8%; filter: drop-shadow(0 18px 16px rgba(60,40,20,.25)); }
 .lightbox img { background: radial-gradient(circle, #f4efe7, #e2d8c8); padding: 4%; }
+
+.promo__art img { width: 100%; height: auto; }
+.split__art img { width: 78%; filter: drop-shadow(0 30px 30px rgba(0,0,0,.45)); }
+.hero__float.hero__piece--a { width: 70%; top: 12%; }

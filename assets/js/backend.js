@@ -13,6 +13,7 @@
   const SB = S.supabase || {};
   const LIVE = !!(SB.url && SB.anonKey);
   const DEMO_KEY = "sbz_admin_db";
+  const DEMO_VERSION = 2;   // bump when the built-in catalogue changes so demos reseed
   const SDK = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js";
 
   /* ---------------------------------------------------------- roles ---- */
@@ -57,7 +58,7 @@
   }
   // Static catalogue product (data.js)  ->  database row
   function fromStatic(p, i) {
-    const gallery = {};
+    const gallery = p.gallery ? JSON.parse(JSON.stringify(p.gallery)) : {};
     if (p.photos) Object.entries(p.photos).forEach(([c, dir]) => {
       gallery[c] = [1, 2, 3].map(v => `assets/img/products/${dir}/${c}-${v}.webp`);
     });
@@ -75,7 +76,11 @@
 
   /* ------------------------------------------------------ demo store ---- */
   function readDemo() {
-    try { const raw = localStorage.getItem(DEMO_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+    try {
+      const raw = localStorage.getItem(DEMO_KEY);
+      const db = raw ? JSON.parse(raw) : null;
+      return db && db.v === DEMO_VERSION ? db : null;
+    } catch (e) { return null; }
   }
   function writeDemo(db) {
     try { localStorage.setItem(DEMO_KEY, JSON.stringify(db)); return true; }
@@ -89,7 +94,7 @@
       shipping: S.shipping, bank: S.bank, currencies: S.currencies
     };
     const promos = Object.entries(S.promoCodes || {}).map(([code, pct]) => ({ code, percent_off: pct, active: true, expires_at: null, max_uses: null, uses: 0, created_at: new Date().toISOString() }));
-    const db = { v: 1, categories: cats, products, customers: [], orders: [], payments: [], promo_codes: promos, roles: ROLES, staff: [], settings, audit_log: [] };
+    const db = { v: DEMO_VERSION, categories: cats, products, customers: [], orders: [], payments: [], promo_codes: promos, roles: ROLES, staff: [], settings, audit_log: [] };
     writeDemo(db);
     return db;
   }

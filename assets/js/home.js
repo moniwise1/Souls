@@ -8,13 +8,14 @@ document.addEventListener("sbz:ready", () => {
   $("#stat-cats").textContent = Object.keys(CATS).length;
 
   // Hero: rotate through pairs of product photos
-  const ph = (id, c, v) => `assets/img/products/${id}/${c}-${v || 1}.webp`;
+  const ph = (dir, c) => `assets/img/catalog/${dir}/${c}.webp`;
   const pairs = [
-    [ph("woven-suede-mule", "camel"), ph("double-buckle-suede-slide", "cognac")],
-    [ph("burnished-leather-runner", "chocolate"), ph("perforated-fisherman-sandal", "cream")],
-    [ph("backless-penny-loafer", "sand"), ph("penny-suede-slide", "chocolate")],
-    [ph("double-strap-comfort-slide", "cognac"), ph("crossover-buckle-slide", "black")],
-    [ph("stripe-court-sneaker", "white"), ph("platform-double-strap-slide", "black")]
+    [ph("brogues", "cognac"), ph("pumps", "red")],
+    [ph("men-chelsea", "black"), ph("totes", "cognac")],
+    [ph("men-loafers", "oxblood"), ph("slingbacks", "cream")],
+    [ph("monk-straps", "chocolate"), ph("handbags", "emerald")],
+    [ph("palm-slippers", "black"), ph("heeled-sandals", "gold")],
+    [ph("chukka", "sand"), ph("mini-bags", "blush")]
   ];
   let i = 0;
   const a = $("#hero-a"), b = $("#hero-b");
@@ -34,10 +35,10 @@ document.addEventListener("sbz:ready", () => {
 
   // Department tiles
   const tiles = [
-    { title: "Men's Shoes", href: "shop.html?gender=men", photo: ph("burnished-leather-runner", "chocolate"), n: P.filter(p => p.gender === "men").length },
-    { title: "Women's Shoes", href: "shop.html?gender=women&dept=shoes", art: ["pump", "nude"], n: P.filter(p => p.gender === "women" && p.dept === "shoes").length },
-    { title: "Bags", href: "shop.html?dept=bags", art: ["handbag", "burgundy"], n: P.filter(p => p.dept === "bags").length },
-    { title: "Accessories", href: "shop.html?dept=accessories", art: ["belt", "tan"], n: P.filter(p => p.dept === "accessories").length }
+    { title: "Men's Shoes", href: "shop.html?gender=men", photo: ph("oxfords", "cognac"), n: P.filter(p => p.gender === "men").length },
+    { title: "Women's Shoes", href: "shop.html?gender=women&dept=shoes", photo: ph("pumps", "nude"), n: P.filter(p => p.gender === "women" && p.dept === "shoes").length },
+    { title: "Bags", href: "shop.html?dept=bags", photo: ph("handbags", "burgundy"), n: P.filter(p => p.dept === "bags").length },
+    { title: "Accessories", href: "shop.html?dept=accessories", photo: ph("belts", "tan"), n: P.filter(p => p.dept === "accessories").length }
   ];
   $("#tiles").innerHTML = tiles.map(t => `
     <a class="tile" href="${t.href}">
@@ -51,9 +52,9 @@ document.addEventListener("sbz:ready", () => {
     const list = Object.entries(CATS).filter(([, c]) =>
       tab === "men" ? c.gender === "men" : tab === "women" ? c.gender === "women" && c.dept === "shoes" : c.dept !== "shoes");
     $("#style-scroller").innerHTML = list.map(([k, c]) => {
-      const sample = P.find(p => p.category === k && p.photos) || P.find(p => p.category === k);
+      const sample = P.find(p => p.category === k && (p.gallery || p.photos)) || P.find(p => p.category === k);
       return `<a class="mini-cat" href="shop.html?cat=${k}">
-        <div class="mini-cat__art">${sample && sample.photos ? window.SBZ.media(sample) : window.ART.svg(sample && sample.art || c.art, sample ? sample.colours[0] : "cognac")}</div>
+        <div class="mini-cat__art">${sample && (sample.gallery || sample.photos) ? window.SBZ.media(sample) : window.ART.svg(sample && sample.art || c.art, sample ? sample.colours[0] : "cognac")}</div>
         <span>${c.label}</span>
       </a>`;
     }).join("");
@@ -86,9 +87,9 @@ document.addEventListener("sbz:ready", () => {
     renderEdit(t.dataset.edit);
   }));
 
-  $("#promo-a").innerHTML = window.ART.svg("palm", "black");
-  $("#promo-b").innerHTML = window.ART.svg("clutch", "gold");
-  $("#story-art").insertAdjacentHTML("afterbegin", window.ART.svg("brogue", "oxblood"));
+  $("#promo-a").innerHTML = `<img src="${ph("palm-slippers", "black")}" alt="">`;
+  $("#promo-b").innerHTML = `<img src="${ph("clutches", "gold")}" alt="">`;
+  $("#story-art").insertAdjacentHTML("afterbegin", `<img src="${ph("brogues", "oxblood")}" alt="">`);
 
   window.SBZ.gallery($("#home-gallery"), 6);
 
