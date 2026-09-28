@@ -48,14 +48,14 @@ The live admin uses **Supabase**, a hosted PostgreSQL database with secure login
 1. **Create the database.** Sign up at https://supabase.com, then click **New project**. Name it `souls-by-zamani`, choose a strong database password and pick the region closest to Nigeria (e.g. *West EU* or *Cape Town*).
 2. **Create the tables.** Open **SQL Editor → New query**, paste the whole of [`supabase/schema.sql`](supabase/schema.sql) and click **Run**.
 3. **Load your catalogue.** Open another new query, paste [`supabase/seed.sql`](supabase/seed.sql) and click **Run**.
-4. **Connect the website.** Go to **Project Settings → API** and copy the **Project URL** and the **anon public** key into `assets/js/config.js`:
+4. **Connect the website.** Go to **Project Settings → API** and copy the **Project URL** and the **Publishable key** (or the legacy **anon** key) into `assets/js/config.js`:
    ```js
    supabase: {
      url: "https://xxxx.supabase.co",
-     anonKey: "eyJhbGciOi..."
+     anonKey: "sb_publishable_..."
    },
    ```
-   The anon key is safe to publish, because the database's security rules decide what it can do. **Never** put the `service_role` key in the website.
+   The publishable key is safe to publish, because the database's security rules decide what it can do. **Never** put a secret or `service_role` key in the website.
 5. **Set the sign-in links.** Go to **Authentication → URL Configuration**. Set **Site URL** to `https://moniwise1.github.io/Souls/admin/` and add the same address under **Redirect URLs**.
 6. **Turn on invitations.** Go to **Edge Functions → Deploy a new function → Via editor**. Name it `invite-staff`, paste [`supabase/functions/invite-staff/index.ts`](supabase/functions/invite-staff/index.ts) and click **Deploy**.
 7. **Create your owner account.** Open `/admin/`, click **First time? Set up the owner account**, and enter your name, email and a strong password. This link disappears once the store has an owner.

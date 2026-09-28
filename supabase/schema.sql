@@ -377,3 +377,18 @@ insert into public.settings (key, value) values
  ('promo_defaults', '{}')
 on conflict (key) do nothing;
 insert into public.promo_codes (code, percent_off) values ('WELCOME10', 10), ('SOULS15', 15) on conflict do nothing;
+
+-- --------------------------------------------------- function permissions --
+-- Functions that need a signed-in user aren't callable anonymously.
+-- (has_perm and my_role stay public: the storefront's read policies use them.)
+alter function public.touch() set search_path = public;
+revoke execute on function public.claim_owner() from public, anon;
+revoke execute on function public.log_action(text, text, text, jsonb) from public, anon;
+revoke execute on function public.request_access(text) from public, anon;
+revoke execute on function public.touch_me() from public, anon;
+revoke execute on function public.update_my_profile(text) from public, anon;
+grant execute on function public.claim_owner() to authenticated;
+grant execute on function public.log_action(text, text, text, jsonb) to authenticated;
+grant execute on function public.request_access(text) to authenticated;
+grant execute on function public.touch_me() to authenticated;
+grant execute on function public.update_my_profile(text) to authenticated;

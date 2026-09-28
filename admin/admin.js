@@ -239,6 +239,16 @@
     const { data } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
     if (data && data.nextLevel === "aal2" && data.currentLevel !== "aal2") return renderTwoStep();
     await loadStaff();
+    // Owner setup with email confirmation: the first sign-in claims the store.
+    if (!session.staff) {
+      const { data: hasOwner } = await sb.rpc("store_has_owner");
+      if (hasOwner === false) {
+        await B.q(sb.rpc("claim_owner"));
+        const name = session.user.user_metadata && session.user.user_metadata.name;
+        if (name) await sb.rpc("update_my_profile", { p_name: name });
+        await loadStaff();
+      }
+    }
     boot();
   }
 
