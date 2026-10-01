@@ -24,6 +24,10 @@ It is a plain HTML, CSS and JavaScript website with no build step and no server 
 
 Manage products, categories, orders, customers, payments, discount codes, staff and roles at **`/admin/`**. It works in demo mode straight away. See **[ADMIN.md](ADMIN.md)** to connect the free Supabase database and go live.
 
+## Budget Partner (personal budget app)
+
+A separate personal budget tracker lives in **`/budget/`**. It has accounts, a bank-style dashboard, strict monthly planning, savings goals, a 12-month forecast, daily reminders, Excel export and an Ask AI chat. See **[budget/README.md](budget/README.md)**.
+
 ## Brand
 
 | Colour | Hex | Use |
