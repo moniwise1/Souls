@@ -6,8 +6,8 @@
 // See budget/README.md for the step-by-step.
 export const CONFIG = {
   appName: "Budget Partner",
-  supabaseUrl: "",
-  supabaseAnonKey: "",
+  supabaseUrl: "https://niousoenssyhynyigyap.supabase.co",
+  supabaseAnonKey: "sb_publishable_BnNsBnSRpU77S-S5_DFklQ_0kd_Y1C7",
   // Name of the Supabase Edge Function that answers "Ask AI" questions with
   // Claude and web search. Needs cloud accounts (above) and the function deployed.
   aiFunction: "budget-ai",

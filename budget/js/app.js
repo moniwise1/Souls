@@ -124,6 +124,24 @@ function openDialog(html, onSubmit, onReady) {
 }
 const closeDialog = () => dlg().open && dlg().close();
 
+/** In-app confirmation (the browser's confirm() is blocked in some hosts). Resolves true or false. */
+function askConfirm(title, message, { ok = "Confirm", danger = false, typed = "" } = {}) {
+  return new Promise((resolve) => {
+    let answer = false;
+    openDialog(`
+      <h2>${esc(title)}</h2>
+      <p>${esc(message).replace(/\n/g, "<br>")}</p>
+      ${typed ? `<label class="field"><span>Type ${esc(typed)} to confirm</span><input name="typed" autocomplete="off" autofocus></label>` : ""}
+      <div class="dlg-actions"><span class="spacer"></span><button type="button" class="btn" data-close>Cancel</button>
+        <button class="btn ${danger ? "danger-solid" : "primary"}">${esc(ok)}</button></div>`,
+    (fd, form) => {
+      if (typed && fd.get("typed") !== typed) return fieldError(form, `Type ${typed} exactly to continue.`);
+      answer = true;
+    });
+    dlg().addEventListener("close", () => resolve(answer), { once: true });
+  });
+}
+
 /* ============================================================ auth == */
 function renderAuth(note = "") {
   document.body.classList.remove("in");
@@ -1162,7 +1180,7 @@ const actions = {
       try { await auth.requestPasswordReset(email); toast("Check your email for a reset link."); } catch (e) { toast(e.message); }
       return;
     }
-    if (confirm("Device accounts are encrypted with your password, so it can't be recovered.\n\nYou can remove this account from the device and start fresh (then restore a backup file if you have one). Remove the account for " + (email || "this email") + "?"))
+    if (await askConfirm("Forgot your password?", "Device accounts are encrypted with your password, so it can't be recovered.\n\nYou can remove this account from this device and start fresh, then restore a backup file if you have one. Remove the account for " + (email || "this email") + "?", { ok: "Remove account", danger: true }))
       if (email && auth.forgetDeviceAccount(email)) { ui.authTab = "up"; renderAuth("Account removed. Create it again, then restore your backup from Reports & export."); }
       else toast("No account with that email on this device.");
   },
@@ -1190,9 +1208,9 @@ const actions = {
   "add-goal": () => goalDialog(),
   "edit-goal": (el) => goalDialog(el.dataset.arg),
   "quick-emergency": (el) => goalDialog(null, { name: "Emergency fund", icon: "🛡️", target: round2(+el.dataset.arg) }),
-  "delete-goal": (el) => {
+  async "delete-goal"(el) {
     const g = goal(el.dataset.arg);
-    if (!confirm(`Delete “${g.name}” and its ${money(goalSaved(g))} of savings history?`)) return;
+    if (!(await askConfirm("Delete goal?", `Delete “${g.name}” and its ${money(goalSaved(g))} of savings history?`, { ok: "Delete", danger: true }))) return;
     state.goals = state.goals.filter((x) => x.id !== g.id);
     state.contributions = state.contributions.filter((c) => c.goalId !== g.id);
     for (const m of Object.values(state.months)) delete m.savings[g.id];
@@ -1212,8 +1230,8 @@ const actions = {
     m.budgets = { ...prev.budgets };
     save(); renderView(); toast("Copied last month's budgets");
   },
-  "clear-plan": () => {
-    if (!confirm(`Clear the budgets and savings plan for ${monthName(ui.month)}? Expenses and income stay.`)) return;
+  async "clear-plan"() {
+    if (!(await askConfirm("Clear this plan?", `This clears the budgets and savings plan for ${monthName(ui.month)}. Your expenses and income stay.`, { ok: "Clear plan", danger: true }))) return;
     const m = ensureMonth(ui.month);
     m.budgets = {};
     m.savings = {};
@@ -1231,7 +1249,7 @@ const actions = {
   "whatif-plan": (el) => plannedDialog(null, { name: el.dataset.name, amount: +el.dataset.amount, month: el.dataset.month, type: "expense" }),
   "whatif-goal": (el) => goalDialog(null, { name: el.dataset.name, target: +el.dataset.amount, deadline: el.dataset.month }),
   "ask": (el) => sendQuestion(el.dataset.arg),
-  "clear-chat": () => { if (confirm("Clear this conversation?")) { state.chat = []; save(); renderView(); } },
+  async "clear-chat"() { if (await askConfirm("Clear this conversation?", "Your questions and answers will be removed.", { ok: "Clear" })) { state.chat = []; save(); renderView(); } },
   "export-xlsx": async () => { toast("Preparing your Excel file…"); try { await exportExcel(); } catch (e) { toast("Couldn't build the Excel file. Check your connection and try again."); } },
   "export-csv": () => exportCSV(),
   "export-backup": () => exportBackup(),
@@ -1240,7 +1258,7 @@ const actions = {
     if (!f) return;
     try {
       const data = await readBackup(f);
-      if (!confirm(`Replace this account's data with the backup from “${f.name}”?`)) return;
+      if (!(await askConfirm("Restore this backup?", `This replaces all of this account's data with the backup from “${f.name}”.`, { ok: "Restore", danger: true }))) return;
       setState(data);
       state.settings.setupDone = true;
       save();
@@ -1273,8 +1291,7 @@ const actions = {
   async "install"() { if (!installPrompt) return; installPrompt.prompt(); await installPrompt.userChoice; installPrompt = null; renderView(); },
   "change-password": () => passwordDialog(),
   async "delete-account"() {
-    if (!confirm("Delete your account and ALL your budget data? This can't be undone. Export a backup first if you might want it.")) return;
-    if (prompt("Type DELETE to confirm") !== "DELETE") return;
+    if (!(await askConfirm("Delete account?", "This deletes your account and ALL your budget data. It can't be undone, so export a backup first if you might want it.", { ok: "Delete everything", danger: true, typed: "DELETE" }))) return;
     await auth.deleteAccount();
     ui.authTab = "up";
     renderAuth("Your account and data were deleted.");

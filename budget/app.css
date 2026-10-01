@@ -84,6 +84,7 @@ code { background: var(--surface-2); padding: 1px 5px; border-radius: 5px; font-
 .btn.block { width: 100%; }
 .btn.ghost { background: transparent; }
 .btn.danger { color: var(--bad); }
+.btn.danger-solid { background: var(--critical); border-color: var(--critical); color: #fff; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn.icon-only { padding: 0; width: 46px; }
 .btn .ic { width: 18px; height: 18px; }
@@ -156,7 +157,7 @@ code { background: var(--surface-2); padding: 1px 5px; border-radius: 5px; font-
 .shell { min-height: 100vh; }
 .main-col { min-width: 0; }
 .topbar {
-  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
 }
 .topbar h1 { font-size: 1.1rem; margin: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
